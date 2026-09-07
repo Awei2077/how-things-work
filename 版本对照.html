@@ -1,0 +1,70 @@
+<!DOCTYPE html><html lang="zh"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>它怎么动 · 四天里的三个版本</title>
+<style>
+:root{--bg:#f7f6f3;--fg:#1f2328;--dim:#6b7280;--line:#e3e0da;--card:#fff;--accent:#2f6f4f}
+@media(prefers-color-scheme:dark){:root{--bg:#15171b;--fg:#e7e9ec;--dim:#8b929c;--line:#2b3037;--card:#1d2126;--accent:#4ea87a}}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--fg);
+  font:15px/1.6 -apple-system,"PingFang SC",system-ui,sans-serif;display:flex;flex-direction:column}
+header{padding:18px 26px 14px;border-bottom:1px solid var(--line);flex:none}
+h1{margin:0;font-size:21px;letter-spacing:.3px}
+.lede{color:var(--dim);font-size:13px;margin-top:4px}
+.stage{flex:1;display:flex;gap:14px;padding:16px 20px 20px;min-height:0}
+.pane{flex:1;min-width:0;display:flex;flex-direction:column;background:var(--card);
+  border:1px solid var(--line);border-radius:16px;overflow:hidden;transition:flex .45s cubic-bezier(.4,0,.2,1)}
+.pane.big{flex:4}
+.pane.small{flex:.6}
+.cap{padding:11px 15px;border-bottom:1px solid var(--line);cursor:pointer;flex:none}
+.when{font-size:11px;color:var(--accent);font-weight:700;letter-spacing:.6px}
+.what{font-size:15px;font-weight:700;margin-top:2px}
+.note{font-size:12px;color:var(--dim);margin-top:3px;line-height:1.5}
+.pane.small .note,.pane.small .quote{display:none}
+.frame{flex:1;position:relative;min-height:0;background:var(--bg)}
+iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.quote{padding:9px 15px;border-top:1px solid var(--line);font-size:12px;color:var(--dim);flex:none;line-height:1.55}
+.quote b{color:var(--fg);font-weight:600}
+.hint{text-align:center;color:var(--dim);font-size:12px;padding:0 0 14px}
+@media(max-width:820px){.stage{flex-direction:column}.pane.small .note,.pane.small .quote{display:block}}
+</style></head><body>
+<header>
+  <h1>它怎么动 · 四天里的三个版本</h1>
+  <div class="lede">2026-09-03 23:55 一句想法 → 2026-09-07 一个上线的网站。每一格都是活的，可以直接拖着转。</div>
+</header>
+<div class="stage" id="stage">
+
+  <div class="pane" data-i="0">
+    <div class="cap"><div class="when">09-04 00:14 · 第 1 小时</div>
+      <div class="what">2D 概念稿</div>
+      <div class="note">Emoji 卡片，还没有 3D。分类是「家里 / 出门」。</div></div>
+    <div class="frame"><iframe src="旧稿/ui-draft.html" loading="lazy"></iframe></div>
+    <div class="quote"><b>阿威 · 09-06</b>「主页可以重新分类一下，比如家里、出门，我觉得这个不是很合理。」</div>
+  </div>
+
+  <div class="pane" data-i="1">
+    <div class="cap"><div class="when">09-04 12:06 · 第 12 小时</div>
+      <div class="what">第一个 3D 汽车</div>
+      <div class="note">单个 HTML 文件，31 KB。纯色方块，没有光影，轮子是两片饼干。</div></div>
+    <div class="frame"><iframe src="历史版本/v1_第一个3D汽车_0904-1206.html" loading="lazy"></iframe></div>
+    <div class="quote"><b>阿威 · 09-04 12:43</b>「建模这一款现在太粗糙了……而不是像现在这样就是一个块的样子。」</div>
+  </div>
+
+  <div class="pane" data-i="2">
+    <div class="cap"><div class="when">09-07 · 第 4 天</div>
+      <div class="what">现在</div>
+      <div class="note">线性色彩管线、清漆车漆、车出来的实体轮胎、轮眉、格栅、街景昼夜。</div></div>
+    <div class="frame"><iframe src="car.html" loading="lazy"></iframe></div>
+    <div class="quote"><b>阿威 · 09-06</b>「他这一版的模型明显更好。」</div>
+  </div>
+
+</div>
+<div class="hint">点任意一格放大它 · 每一格都能拖动旋转</div>
+<script>
+const panes=[...document.querySelectorAll('.pane')];
+function focus(i){panes.forEach((p,k)=>{p.classList.toggle('big',k===i);p.classList.toggle('small',i!==null&&k!==i);});}
+panes.forEach((p,i)=>p.querySelector('.cap').addEventListener('click',()=>{
+  focus(p.classList.contains('big')?null:i);
+}));
+</script>
+</body></html>

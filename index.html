@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>它怎么动？</title>
+<style>
+:root{--bg:#FFF6E5;--bg2:#FFEFD1;--ink:#2B3A55;--ink-soft:#6B7A99;--card:#fff;--sky-deep:#2F8FD6;--sun:#FFB020;--sun-tint:#FFF1CC;--leaf-tint:#DDF7E9;--shadow:0 4px 0 rgba(43,58,85,.10),0 10px 24px rgba(43,58,85,.08)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;min-height:100vh;font-family:"PingFang SC","HarmonyOS Sans SC","Hiragino Sans GB","Microsoft YaHei",system-ui,sans-serif;color:var(--ink);background:radial-gradient(120% 90% at 50% -10%,var(--bg2),var(--bg) 60%)}
+.wrap{max-width:820px;margin:0 auto;padding:22px 18px 48px}
+.hero{text-align:center;padding:14px 0 8px}
+.hero h1{margin:0;font-size:40px;font-weight:900;letter-spacing:2px;line-height:1.1}
+.hero h1 em{font-style:normal;color:var(--sky-deep)}
+.hero p{margin:10px 0 0;font-size:16px;color:var(--ink-soft);font-weight:600}
+.group{margin-top:26px}
+.group h2{display:flex;align-items:center;gap:10px;margin:0 0 12px 4px;font-size:18px;font-weight:800}
+.group h2 .gi{width:12px;height:12px;border-radius:4px;background:var(--sun)}
+.group h2 .gi.b{background:var(--sky-deep)}
+.group h2 .gi.g{background:#7FC26A}
+.group h2 small{font-weight:600;font-size:13px;color:var(--ink-soft)}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+@media(min-width:620px){.grid{grid-template-columns:repeat(3,1fr)}}
+.card{position:relative;display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 10px 14px;border-radius:26px;background:var(--card);box-shadow:var(--shadow);text-decoration:none;color:inherit;transition:transform .12s;overflow:hidden}
+.card:active{transform:scale(.96) translateY(3px)}
+.card canvas{width:100%;aspect-ratio:1/1;display:block;border-radius:18px;background:linear-gradient(180deg,#F3F8FD,#E6EEF6)}
+.card.sky canvas{background:linear-gradient(180deg,#A9D4FF,#D6ECFB 60%,#BFE3B0)}
+.card.warm canvas{background:linear-gradient(180deg,#FBF3E6,#EFE6D6)}
+.card .nm{font-size:20px;font-weight:900;margin-top:6px}
+.card .tag{position:absolute;top:12px;right:12px;font-size:11px;padding:3px 9px;border-radius:99px;background:var(--leaf-tint);color:#1f8a58;font-weight:800}
+.more{margin-top:30px;text-align:center;color:var(--ink-soft);font-size:14px;font-weight:600}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hero"><h1>它<em>怎么</em>动？</h1><p>点一个，看看它里面是怎么工作的</p></div>
+  <div class="group"><h2><span class="gi b"></span>交通工具 <small>带着我们去别的地方</small></h2>
+    <div class="grid">
+      <a class="card sky" href="car.html" data-scene="car"><canvas></canvas><div class="nm">汽车</div></a>
+      <a class="card sky" href="jet.html" data-scene="jet"><canvas></canvas><div class="nm">飞机</div></a>
+      <a class="card sky" href="elevator.html" data-scene="elevator"><canvas></canvas><div class="nm">电梯</div></a>
+    </div></div>
+  <div class="group"><h2><span class="gi g"></span>工具 <small>帮我们干活的机器</small></h2>
+    <div class="grid">
+      <a class="card sky" href="excavator.html" data-scene="excavator"><canvas></canvas><div class="nm">挖掘机</div></a>
+      <a class="card warm" href="washer.html" data-scene="washer"><canvas></canvas><div class="nm">洗衣机</div></a>
+    </div></div>
+  <p class="more">更多东西正在做……</p>
+</div>
+<script src="lib/three.min.js?v=1788493942"></script>
+<script src="lib3d.js?v=1788697758"></script>
+<script src="scenes/car.js?v=1788766718"></script>
+<script src="scenes/washer.js?v=1788583186"></script>
+<script src="scenes/elevator.js?v=1788583162"></script>
+<script src="scenes/excavator.js?v=1788582423"></script>
+<script src="scenes/jet.js?v=1788578252"></script>
+<script src="home.js?v=1788698296"></script>
+</body>
+</html>

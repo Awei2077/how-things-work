@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>它怎么动？（UI 稿）</title>
+<style>
+:root{
+  --bg:#FFF6E5; --bg2:#FFEFD1;
+  --ink:#2B3A55; --ink-soft:#6B7A99; --ink-faint:#A5B0C4;
+  --card:#FFFFFF;
+  --sky:#5BB8F5; --sky-deep:#2F8FD6; --sky-tint:#E3F3FF;
+  --sun:#FFB020; --sun-deep:#E08E00; --sun-tint:#FFF1CC;
+  --leaf:#4CC38A; --leaf-tint:#DDF7E9;
+  --berry:#FF6B6B; --berry-deep:#E04848;
+  --spark:#FFD740;
+  --shadow:0 4px 0 rgba(43,58,85,.10), 0 10px 24px rgba(43,58,85,.08);
+  --r:26px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+html,body{margin:0;min-height:100%}
+body{
+  font-family:"PingFang SC","HarmonyOS Sans SC","Hiragino Sans GB","Microsoft YaHei",system-ui,sans-serif;
+  color:var(--ink); background:radial-gradient(120% 90% at 50% -10%,var(--bg2),var(--bg) 60%);
+  min-height:100vh; overscroll-behavior:none;
+}
+button{font-family:inherit;border:0;cursor:pointer;color:inherit;background:none}
+.hidden{display:none!important}
+
+/* ---------- 顶部 ---------- */
+.top{display:flex;align-items:center;gap:10px;padding:14px 16px 6px;max-width:760px;margin:0 auto}
+.top .title{flex:1;text-align:center;font-size:22px;font-weight:800;letter-spacing:1px}
+.rbtn{width:52px;height:52px;border-radius:18px;background:var(--card);box-shadow:var(--shadow);
+  font-size:24px;display:flex;align-items:center;justify-content:center;transition:transform .1s}
+.rbtn:active{transform:scale(.92) translateY(2px);box-shadow:0 1px 0 rgba(43,58,85,.1)}
+.rbtn.off{opacity:.45}
+
+/* ---------- 首页 ---------- */
+.home{max-width:760px;margin:0 auto;padding:6px 16px 40px}
+.hero{text-align:center;padding:14px 0 6px}
+.hero h1{margin:0;font-size:40px;font-weight:900;letter-spacing:2px;line-height:1.1}
+.hero h1 em{font-style:normal;color:var(--sky-deep)}
+.hero p{margin:8px 0 0;font-size:16px;color:var(--ink-soft)}
+.group{margin-top:22px}
+.group h2{display:flex;align-items:center;gap:10px;margin:0 0 12px 4px;font-size:18px;font-weight:800}
+.group h2 .gi{width:38px;height:38px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:20px}
+.group h2 .gi.a{background:var(--sun-tint)} .group h2 .gi.b{background:var(--sky-tint)}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+@media(min-width:560px){.grid{grid-template-columns:repeat(3,1fr)}}
+@media(min-width:760px){.grid{grid-template-columns:repeat(4,1fr)}}
+.card{position:relative;aspect-ratio:1/1.08;border-radius:var(--r);background:var(--card);box-shadow:var(--shadow);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:12px;
+  transition:transform .12s;overflow:hidden}
+.card:active{transform:scale(.95) translateY(3px)}
+.card .pic{width:64%;aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:56px;line-height:1}
+.card .pic svg{width:100%;height:100%}
+.card .nm{font-size:19px;font-weight:800}
+.card.soon{opacity:.55;background:#fffaf0}
+.card.soon .nm{color:var(--ink-soft)}
+.card .tag{position:absolute;top:10px;right:10px;font-size:11px;padding:3px 8px;border-radius:99px;background:var(--sun-tint);color:var(--sun-deep);font-weight:700}
+.card.ready .tag{background:var(--leaf-tint);color:#1f8a58}
+.toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);opacity:0;background:var(--ink);color:#fff;
+  padding:12px 20px;border-radius:99px;font-size:15px;pointer-events:none;transition:.25s;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%)}
+.draft-tag{position:fixed;top:0;left:0;font-size:11px;background:var(--ink);color:#fff;padding:3px 10px;border-radius:0 0 10px 0;opacity:.7;z-index:9}
+
+/* ---------- 场景页 ---------- */
+.scene{max-width:760px;margin:0 auto;padding:0 16px 30px;display:flex;flex-direction:column;gap:12px}
+.stage-wrap{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);padding:10px;position:relative}
+.stage{width:100%;height:min(66vw,46vh);display:block;overflow:visible}
+.stage svg{width:100%;height:100%;display:block}
+.stage-wrap .peek{position:absolute;right:16px;top:14px;font-size:13px;background:var(--sky-tint);color:var(--sky-deep);
+  padding:5px 10px;border-radius:99px;font-weight:700;pointer-events:none;opacity:0;transition:.2s}
+.stage-wrap.xray .peek{opacity:1}
+
+/* 步骤条 */
+.steps{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
+.step{display:flex;align-items:center;gap:5px;padding:7px 11px;border-radius:99px;background:#fff;box-shadow:var(--shadow);
+  font-size:13.5px;font-weight:700;color:var(--ink-soft);transition:.2s}
+.step .n{width:20px;height:20px;border-radius:50%;background:var(--bg2);color:var(--ink-soft);font-size:12px;display:flex;align-items:center;justify-content:center}
+.step.inner{border:2px dashed #eadfc8;box-shadow:none;background:transparent}
+.step.done{color:var(--ink)} .step.done .n{background:var(--leaf-tint);color:#1f8a58}
+.step.now{background:var(--sun);color:#fff;transform:scale(1.06)} .step.now .n{background:#fff;color:var(--sun-deep)}
+.caption{min-height:66px;text-align:center;font-size:24px;font-weight:800;line-height:1.35;padding:6px 10px;display:flex;align-items:center;justify-content:center}
+.caption small{display:block;font-size:14px;color:var(--ink-soft);font-weight:600;margin-top:2px}
+
+/* 底部大按钮 */
+.ctrl{display:grid;grid-template-columns:1.4fr 1fr;gap:12px}
+.big{height:84px;border-radius:var(--r);font-size:22px;font-weight:900;display:flex;align-items:center;justify-content:center;gap:10px;
+  box-shadow:0 6px 0 rgba(0,0,0,.12), 0 12px 24px rgba(43,58,85,.10);transition:transform .08s,box-shadow .08s;color:#fff}
+.big:active{transform:translateY(5px);box-shadow:0 1px 0 rgba(0,0,0,.12)}
+.big .ic{font-size:30px}
+.big.power{background:linear-gradient(180deg,#5fd39a,var(--leaf))}
+.big.power.on{background:linear-gradient(180deg,#ff8a8a,var(--berry))}
+.big.xray{background:linear-gradient(180deg,#7cc8ff,var(--sky))}
+.big.xray.on{background:linear-gradient(180deg,#ffc44d,var(--sun))}
+@media(min-width:700px){
+  .scene{display:grid;grid-template-columns:1.25fr .9fr;grid-template-areas:"stage steps" "stage caption" "stage ctrl";align-items:start;gap:16px}
+  .stage-wrap{grid-area:stage}.stage{height:min(48vw,70vh)}.steps{grid-area:steps;justify-content:flex-start}
+  .caption{grid-area:caption;justify-content:flex-start;text-align:left;min-height:110px;font-size:26px}
+  .ctrl{grid-area:ctrl;grid-template-columns:1fr;gap:12px}
+}
+
+/* ---------- SVG 动效（外面 / 里面 / 步骤 s1~s5 累加） ---------- */
+.stage svg{overflow:visible}
+.stage .inner{opacity:0;transition:opacity .35s;pointer-events:none}
+.stage .shell{transition:opacity .35s}
+.scene.xray .stage .inner{opacity:1;pointer-events:auto}
+.scene.xray .stage .shell{opacity:.16}
+.scene.xray .step.inner{border-style:solid;border-color:var(--sky);background:#fff}
+.scene.xray .step.inner.now{background:var(--sun);border-color:var(--sun)}
+.scene.xray .step.inner.done{border-color:var(--leaf)}
+.xray .peek{opacity:1}
+.pic .inner,.pic .wind,.pic .puff,.pic .spark{display:none}
+.stage [data-name]{cursor:pointer}
+.stage .lit{filter:drop-shadow(0 0 4px var(--spark)) drop-shadow(0 0 12px var(--sun));animation:pulse .5s ease-in-out infinite alternate}
+@keyframes pulse{to{filter:drop-shadow(0 0 1px var(--spark)) drop-shadow(0 0 3px var(--sun))}}
+@keyframes spin{to{transform:rotate(360deg)}}
+.stage .spark{opacity:0;transition:opacity .3s}
+.stage.s2 .spark{opacity:1}
+.stage.s2 .innerwire{stroke:var(--sun-deep)}
+/* 风扇 */
+.blades{transform-box:view-box;transform-origin:200px 120px}
+.stage.s4 .blades{animation:spin .42s linear infinite}
+.stage.s3 .motor circle{fill:#FFD9A3}
+.stage .wind{opacity:0;transition:opacity .3s}
+.stage.s5 .wind{opacity:1}
+.wind circle{transform-box:view-box;transform-origin:200px 120px;animation:gust 1.5s ease-out infinite}
+.wind circle:nth-child(2){animation-delay:.5s}.wind circle:nth-child(3){animation-delay:1s}
+@keyframes gust{from{transform:scale(1);opacity:.9}to{transform:scale(1.32);opacity:0}}
+.knob{transition:transform .2s}
+.stage.s1 .knob{transform:translateX(26px)} .stage.s1 .track{fill:var(--leaf)}
+/* 汽车 */
+.wheel{transform-box:fill-box;transform-origin:center}
+.stage.s4 .wheel{animation:spin .5s linear infinite}
+.stage.s5 .road{animation:roll .5s linear infinite}
+@keyframes roll{to{transform:translateX(-80px)}}
+.stage.s1 .headlight{fill:var(--spark);filter:drop-shadow(0 0 10px var(--spark))}
+.stage.s1 .startbtn circle{fill:var(--leaf)}
+.stage.s2 .engine rect.block{fill:#FFD9A3}
+.piston{transform-box:fill-box;transform-origin:center}
+.stage.s2 .piston{animation:pump .22s ease-in-out infinite alternate}
+.stage.s2 .piston:nth-child(2){animation-delay:.11s}
+@keyframes pump{to{transform:translateY(-9px)}}
+.stage.s3 .shaft{stroke-dasharray:10 8;animation:flow .35s linear infinite}
+@keyframes flow{to{stroke-dashoffset:-18}}
+.stage .puff{opacity:0}
+.stage.s5 .puff{opacity:1}
+.puff circle{transform-box:fill-box;transform-origin:center;animation:puff 1.3s ease-out infinite}
+.puff circle:nth-child(2){animation-delay:.43s}.puff circle:nth-child(3){animation-delay:.86s}
+@keyframes puff{from{transform:translate(0,0) scale(1);opacity:.9}to{transform:translate(46px,-26px) scale(2.4);opacity:0}}
+.stage.s5 .carbody{animation:shake .3s ease-in-out infinite alternate}
+@keyframes shake{to{transform:translateY(-2.5px)}}
+</style>
+</head>
+<body>
+<div class="draft-tag">UI 稿 · 可点击</div>
+<div id="app"></div>
+<div class="toast" id="toast"></div>
+<script>
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const INK='#2B3A55';
+
+/* ===================== 场景：电风扇 ===================== */
+const fanSvg=()=>{
+  const spokes=Array.from({length:12},(_,i)=>{const a=i*Math.PI/6;return `<line x1="200" y1="120" x2="${(200+98*Math.cos(a)).toFixed(1)}" y2="${(120+98*Math.sin(a)).toFixed(1)}"/>`}).join('');
+  const wirePath='M348 282 C315 284 300 268 258 268 L214 268 L200 262 L200 150';
+  return `<svg viewBox="0 -14 400 314" xmlns="http://www.w3.org/2000/svg">
+  <g data-name="插座"><rect x="352" y="246" width="34" height="46" rx="8" fill="#F1E7D6" stroke="${INK}" stroke-width="3"/><rect x="362" y="258" width="5" height="13" rx="2" fill="${INK}"/><rect x="371" y="258" width="5" height="13" rx="2" fill="${INK}"/></g>
+  <path class="wire" data-name="电线" d="M258 268 C300 268 315 284 348 282" fill="none" stroke="${INK}" stroke-width="6" stroke-linecap="round"/>
+  <rect class="plug" data-name="插头" x="338" y="273" width="18" height="18" rx="5" fill="${INK}"/>
+  <rect data-name="底座" x="140" y="252" width="120" height="32" rx="16" fill="#5BB8F5" stroke="${INK}" stroke-width="3"/>
+  <rect class="pole" data-name="立柱" x="189" y="182" width="22" height="74" rx="7" fill="#5BB8F5" stroke="${INK}" stroke-width="3"/>
+  <g class="inner">
+    <path class="innerwire" data-name="里面的电线" d="${wirePath}" fill="none" stroke="#E04848" stroke-width="4" stroke-dasharray="7 5" stroke-linecap="round"/>
+    <g class="motor" data-name="马达"><circle cx="200" cy="120" r="36" fill="#C9CED8" stroke="${INK}" stroke-width="3"/><path d="M176 106h48M176 120h48M176 134h48" stroke="#8A93A6" stroke-width="5" stroke-linecap="round"/></g>
+    <circle class="spark" r="7" fill="#FFD740" stroke="#E08E00" stroke-width="2.5"><animateMotion dur="1.5s" repeatCount="indefinite" path="${wirePath}"/></circle>
+  </g>
+  <g class="blades" data-name="扇叶">
+    <ellipse cx="200" cy="72" rx="25" ry="47" fill="#7CC8FF" stroke="${INK}" stroke-width="3"/>
+    <ellipse cx="200" cy="72" rx="25" ry="47" fill="#7CC8FF" stroke="${INK}" stroke-width="3" transform="rotate(120 200 120)"/>
+    <ellipse cx="200" cy="72" rx="25" ry="47" fill="#7CC8FF" stroke="${INK}" stroke-width="3" transform="rotate(240 200 120)"/>
+    <circle cx="200" cy="120" r="15" fill="#FFB020" stroke="${INK}" stroke-width="3"/>
+  </g>
+  <g class="shell grille" data-name="网罩" fill="none" stroke="${INK}" stroke-width="2.5">
+    <circle cx="200" cy="120" r="98" stroke-width="4"/><circle cx="200" cy="120" r="70"/><circle cx="200" cy="120" r="42"/>${spokes}
+  </g>
+  <g class="switch" data-name="开关"><rect class="track" x="176" y="259" width="48" height="18" rx="9" fill="${INK}"/><circle class="knob" cx="187" cy="268" r="7" fill="#fff"/></g>
+  <g class="wind" fill="none" stroke="#5BB8F5" stroke-width="4" stroke-dasharray="16 14" stroke-linecap="round">
+    <circle cx="200" cy="120" r="106"/><circle cx="200" cy="120" r="106"/><circle cx="200" cy="120" r="106"/>
+  </g>
+</svg>`};
+
+/* ===================== 场景：汽车 ===================== */
+const carSvg=()=>{
+  const dashes=Array.from({length:7},(_,i)=>`<rect x="${-80+i*80}" y="266" width="44" height="8" rx="4"/>`).join('');
+  const wheel=cx=>`<g class="wheel"><circle cx="${cx}" cy="212" r="30" fill="${INK}"/><circle cx="${cx}" cy="212" r="17" fill="#E5E7EB" stroke="${INK}" stroke-width="3"/><path d="M${cx} 195v34M${cx-17} 212h34" stroke="${INK}" stroke-width="4"/></g>`;
+  return `<svg viewBox="0 0 400 300" style="overflow:hidden" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="242" width="400" height="58" fill="#8B95A8"/><line x1="0" y1="242" x2="400" y2="242" stroke="${INK}" stroke-width="3"/>
+  <g class="road" fill="#fff">${dashes}</g>
+  <g class="puff" fill="#C8CDD8"><circle cx="376" cy="208" r="7"/><circle cx="376" cy="208" r="7"/><circle cx="376" cy="208" r="7"/></g>
+  <g class="carbody">
+    <g class="shell">
+      <path class="body" data-name="车身" d="M62 208L62 168Q62 152 80 148L128 142L162 102Q168 94 180 94L268 94Q280 94 290 106L320 142L350 150Q366 154 366 170L366 208Q366 218 356 218L72 218Q62 218 62 208Z" fill="#FF6B6B" stroke="${INK}" stroke-width="3.5"/>
+      <path class="glass" data-name="车窗" d="M136 142L168 104L216 104L216 142Z" fill="#CDEBFF" stroke="${INK}" stroke-width="3"/>
+      <path class="glass" data-name="车窗" d="M228 104L266 104L312 142L228 142Z" fill="#CDEBFF" stroke="${INK}" stroke-width="3"/>
+      <rect x="366" y="198" width="14" height="10" rx="3" fill="${INK}"/>
+    </g>
+    <circle class="headlight" data-name="车灯" cx="70" cy="178" r="8" fill="#FFF1CC" stroke="${INK}" stroke-width="3"/>
+    <g class="startbtn" data-name="启动按钮"><circle cx="156" cy="128" r="9" fill="#E04848" stroke="${INK}" stroke-width="3"/></g>
+    <g class="inner">
+      <g class="engine" data-name="发动机"><rect class="block" x="76" y="156" width="54" height="46" rx="8" fill="#C9CED8" stroke="${INK}" stroke-width="3"/>
+        <g class="pistons"><rect class="piston" x="84" y="146" width="10" height="20" rx="3" fill="${INK}"/><rect class="piston" x="98" y="146" width="10" height="20" rx="3" fill="${INK}"/><rect class="piston" x="112" y="146" width="10" height="20" rx="3" fill="${INK}"/></g>
+      </g>
+      <path class="shaft" data-name="传动轴" d="M130 188L300 212" fill="none" stroke="#E04848" stroke-width="5" stroke-linecap="round"/>
+      <path class="shaft" data-name="传动轴" d="M103 202L120 212" fill="none" stroke="#E04848" stroke-width="5" stroke-linecap="round"/>
+    </g>
+  </g>
+  <g class="wheels" data-name="轮子">${wheel(120)}${wheel(300)}</g>
+</svg>`};
+
+/* ===================== 场景注册表：加一个东西 = 加一个对象 ===================== */
+const SCENES={
+  fan:{ svg:fanSvg, on:'开', off:'关', sfx:{at:4,name:'wind'}, done:'凉快！风来了～',
+    steps:[
+      {t:'按一下开关。', part:'.switch'},
+      {t:'电从插头顺着电线跑进去。', part:'.innerwire', inner:true},
+      {t:'电让马达嗡嗡转起来。', part:'.motor', inner:true},
+      {t:'马达带着扇叶一起转。', part:'.blades'},
+      {t:'扇叶把风推出来啦！', part:'.wind'},
+    ]},
+  car:{ svg:carSvg, on:'启动', off:'停车', sfx:{at:2,name:'engine'}, done:'嘟嘟～车子跑起来啦！',
+    steps:[
+      {t:'按一下启动按钮。', part:'.startbtn'},
+      {t:'发动机突突突动起来。', part:'.engine', inner:true},
+      {t:'力气顺着轴传给轮子。', part:'.shaft', inner:true},
+      {t:'轮子转呀转。', part:'.wheels'},
+      {t:'车子跑起来啦！', part:'.road'},
+    ]},
+};
+const THINGS=[
+  {id:'fan',  group:'home', name:'电风扇', scene:SCENES.fan},
+  {id:'lamp', group:'home', name:'台灯',   emoji:'💡'},
+  {id:'toilet',group:'home',name:'马桶',   emoji:'🚽'},
+  {id:'washer',group:'home',name:'洗衣机', emoji:'🧺'},
+  {id:'tap',  group:'home', name:'水龙头', emoji:'🚰'},
+  {id:'lift', group:'home', name:'电梯',   emoji:'🛗'},
+  {id:'car',  group:'out',  name:'汽车',   scene:SCENES.car},
+  {id:'light',group:'out',  name:'红绿灯', emoji:'🚦'},
+  {id:'bike', group:'out',  name:'自行车', emoji:'🚲'},
+  {id:'digger',group:'out', name:'挖掘机', emoji:'🚜'},
+  {id:'bus',  group:'out',  name:'公交车', emoji:'🚌'},
+  {id:'plane',group:'out',  name:'飞机',   emoji:'✈️'},
+];
+
+/* ===================== 声音：朗读 + 音效（都不需要素材文件） ===================== */
+let muted=localStorage.getItem('muted')==='1';
+function say(text){
+  if(muted||!('speechSynthesis' in window)) return Promise.resolve();
+  return new Promise(res=>{
+    speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(text); u.lang='zh-CN'; u.rate=.92; u.pitch=1.15;
+    const vs=speechSynthesis.getVoices().filter(v=>/zh[-_]CN/i.test(v.lang));
+    u.voice=vs.find(v=>/Tingting|Ting-Ting|Xiaoxiao|Meijia|Google/i.test(v.name))||vs[0]||null;
+    let done=false; const fin=()=>{if(!done){done=true;res()}};
+    u.onend=fin; u.onerror=fin; setTimeout(fin,4500); speechSynthesis.speak(u);
+  });
+}
+if('speechSynthesis' in window) speechSynthesis.getVoices();
+const sfx=(()=>{
+  let ctx,cur=null;
+  const ac=()=>{ctx=ctx||new (window.AudioContext||window.webkitAudioContext)(); if(ctx.state==='suspended')ctx.resume(); return ctx};
+  function stop(){ if(!cur)return; const n=cur; cur=null; n.g.gain.setTargetAtTime(0,ac().currentTime,.12); setTimeout(()=>n.src.forEach(s=>{try{s.stop()}catch(e){}}),700) }
+  function wind(){ stop(); if(muted)return; const c=ac();
+    const buf=c.createBuffer(1,c.sampleRate*2,c.sampleRate), d=buf.getChannelData(0); for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;
+    const src=c.createBufferSource(); src.buffer=buf; src.loop=true;
+    const f=c.createBiquadFilter(); f.type='lowpass'; f.frequency.value=650;
+    const g=c.createGain(); g.gain.value=0; src.connect(f).connect(g).connect(c.destination); src.start();
+    const o=c.createOscillator(); o.type='triangle'; o.frequency.value=72; const g2=c.createGain(); g2.gain.value=.08; o.connect(g2).connect(g); o.start();
+    g.gain.setTargetAtTime(.32,c.currentTime,.5); cur={g,src:[src,o]} }
+  function engine(){ stop(); if(muted)return; const c=ac();
+    const o=c.createOscillator(); o.type='sawtooth'; o.frequency.value=46;
+    const lfo=c.createOscillator(); lfo.frequency.value=9; const lg=c.createGain(); lg.gain.value=12; lfo.connect(lg).connect(o.frequency); lfo.start();
+    const f=c.createBiquadFilter(); f.type='lowpass'; f.frequency.value=300;
+    const g=c.createGain(); g.gain.value=0; o.connect(f).connect(g).connect(c.destination); o.start();
+    g.gain.setTargetAtTime(.2,c.currentTime,.3); cur={g,src:[o,lfo]} }
+  return {ac,stop,wind,engine};
+})();
+
+/* ===================== 路由 / 渲染 ===================== */
+const app=$('#app');
+let cur=null,on=false,xray=false,chainId=0;
+function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),1600)}
+function render(){
+  const id=location.hash.slice(1); const t=THINGS.find(x=>x.id===id&&x.scene);
+  chainId++; on=false; xray=false; sfx.stop(); if('speechSynthesis' in window)speechSynthesis.cancel();
+  window.scrollTo(0,0); t?renderScene(t):renderHome();
+}
+window.addEventListener('hashchange',render);
+
+function card(t){
+  const pic=t.scene?`<div class="pic">${t.scene.svg()}</div>`:`<div class="pic">${t.emoji}</div>`;
+  const act=t.scene?`location.hash='${t.id}'`:`toast('「${t.name}」下一批做 🙂')`;
+  return `<div class="card ${t.scene?'ready':'soon'}" onclick="${act}">${pic}<div class="nm">${t.name}</div><div class="tag">${t.scene?'能玩':'下一批'}</div></div>`;
+}
+const group=(title,cls,ico,g)=>`<div class="group"><h2><span class="gi ${cls}">${ico}</span>${title}</h2><div class="grid">${THINGS.filter(t=>t.group===g).map(card).join('')}</div></div>`;
+function renderHome(){
+  app.innerHTML=`<div class="home">
+    <div class="hero"><h1>它<em>怎么</em>动？</h1><p>点一下，它就动起来 · 再点「看里面」，看它为什么会动</p></div>
+    ${group('家里','a','🏠','home')}${group('出门','b','🚗','out')}
+  </div>`;
+}
+
+function renderScene(t){
+  cur=t; const sc=t.scene;
+  app.innerHTML=`
+  <div class="top"><button class="rbtn" onclick="location.hash=''" aria-label="返回">←</button><div class="title">${t.name}</div>
+    <button class="rbtn ${muted?'off':''}" id="mute">${muted?'🔇':'🔊'}</button></div>
+  <div class="scene" id="scene">
+    <div class="stage-wrap"><div class="stage" id="stage">${sc.svg()}</div><div class="peek">👀 看里面 · 点点零件听名字</div></div>
+    <div class="steps">${sc.steps.map((s,i)=>`<div class="step ${s.inner?'inner':''}"><span class="n">${i+1}</span>${s.t.replace(/[。！]/g,'')}</div>`).join('')}</div>
+    <div class="caption" id="cap">点一下<span style="color:var(--leaf)">${sc.on}</span>试试！</div>
+    <div class="ctrl">
+      <button class="big power" id="power"><span class="ic">⏻</span><span id="ptxt">${sc.on}</span></button>
+      <button class="big xray" id="xray"><span class="ic">👀</span><span id="xtxt">看里面</span></button>
+    </div>
+  </div>`;
+  $('#power').onclick=toggle; $('#xray').onclick=toggleXray;
+  $('#mute').onclick=e=>{muted=!muted;localStorage.setItem('muted',muted?'1':'0');e.currentTarget.textContent=muted?'🔇':'🔊';e.currentTarget.classList.toggle('off',muted);if(muted){sfx.stop();speechSynthesis.cancel()}else if(on&&sc.sfx)sfx[sc.sfx.name]()};
+  $('#stage').onclick=e=>{
+    const p=e.target.closest('[data-name]'); if(!p)return;
+    if(p.matches(sc.steps[0].part)){toggle();return}
+    $$('.lit',$('#stage')).forEach(x=>x.classList.remove('lit')); p.classList.add('lit'); setTimeout(()=>p.classList.remove('lit'),1200);
+    const nm=p.dataset.name; $('#cap').innerHTML=`这是<b style="color:var(--sky-deep)">${nm}</b>`; say(nm);
+  };
+}
+function toggleXray(){
+  xray=!xray; $('#scene').classList.toggle('xray',xray); $('#xray').classList.toggle('on',xray); $('#xtxt').textContent=xray?'合上':'看里面';
+  if(!on) $('#cap').innerHTML=xray?`这是里面！<small>点点零件听听它叫什么 · 按「${cur.scene.on}」看电怎么跑</small>`:`点一下<span style="color:var(--leaf)">${cur.scene.on}</span>试试！`;
+  say(xray?'看里面':'合上');
+}
+async function toggle(){
+  const sc=cur.scene, st=$('#stage'), pw=$('#power'), id=++chainId; sfx.ac();
+  on=!on;
+  if(!on){
+    st.className='stage'; pw.classList.remove('on'); $('#ptxt').textContent=sc.on; sfx.stop(); if('speechSynthesis' in window)speechSynthesis.cancel();
+    $$('.step').forEach(s=>s.classList.remove('now','done')); $$('.lit',st).forEach(x=>x.classList.remove('lit'));
+    $('#cap').innerHTML=`${sc.off}啦。<small>再按一下，再来一次！</small>`; return;
+  }
+  pw.classList.add('on'); $('#ptxt').textContent=sc.off;
+  let sfxOn=false;
+  for(let i=0;i<sc.steps.length;i++){
+    if(id!==chainId)return;
+    const s=sc.steps[i]; st.classList.add('s'+(i+1));
+    if(sc.sfx&&!sfxOn&&i+1>=sc.sfx.at){sfx[sc.sfx.name]();sfxOn=true}
+    if(s.inner&&!xray)continue;
+    $$('.step').forEach((el,j)=>{el.classList.toggle('now',j===i);el.classList.toggle('done',j<i)});
+    $$('.lit',st).forEach(x=>x.classList.remove('lit')); const part=$(s.part,st); part&&part.classList.add('lit');
+    $('#cap').textContent=s.t;
+    await Promise.race([say(s.t),sleep(4500)]); await sleep(muted?1400:300);
+  }
+  if(id!==chainId)return;
+  $$('.step').forEach(el=>{el.classList.remove('now');el.classList.add('done')}); $$('.lit',st).forEach(x=>x.classList.remove('lit'));
+  $('#cap').innerHTML=`${sc.done}<small>${xray?`再按「${sc.off}」，然后再来一次 · 或者点点里面的零件`:'点「看里面」，看看它为什么会动'}</small>`;
+}
+render();
+</script>
+</body>
+</html>

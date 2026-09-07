@@ -1,0 +1,52 @@
+/* 实体模型样板：保留适合幼儿的三个大操作，降低背景和表面的视觉噪声。 */
+body.model-view {
+  --ink: #26394b;
+  --ink-soft: #637587;
+  --sky-deep: #347ba8;
+  --shadow: 0 2px 0 rgba(30, 52, 72, .05), 0 8px 24px rgba(30, 52, 72, .07);
+  background: #edf3f6;
+}
+.model-view .top { padding: calc(18px + env(safe-area-inset-top)) 22px 0; }
+.model-view .title { font-size: 27px; letter-spacing: .5px; }
+.model-view .title small { margin-top: 6px; font-size: 13px; font-weight: 600; }
+.model-view .rbtn { border-radius: 16px; background: rgba(255,255,255,.92); }
+.model-view .hint { top: calc(92px + env(safe-area-inset-top)); background: #486578; }
+.model-view .bottom { max-width: 760px; gap: 12px; padding-bottom: calc(18px + env(safe-area-inset-bottom)); }
+.model-view .cap { min-height: 88px; padding: 14px 18px; border-radius: 22px; background: rgba(255,255,255,.95); }
+.model-view .cap .ce { background: #f0f4f6; }
+.model-view .cap .cn { font-size: 21px; }
+.model-view .cap .cd { line-height: 1.5; font-weight: 500; }
+.model-view .big { height: 68px; box-shadow: 0 4px 0 rgba(26,47,63,.15), 0 8px 20px rgba(26,47,63,.09); }
+.model-view .big.go { background: linear-gradient(#58b88e, #349a70); }
+.model-view .big.go.on { background: linear-gradient(#ec7976, #d35d59); }
+.model-view .big.xr { background: linear-gradient(#64a7cf, #3986b4); }
+.model-view .big.xr.on { background: linear-gradient(#428fb8, #2b6f97); }
+.model-view .big.ex { background: linear-gradient(#eebb66, #d69d43); }
+.model-view .big.ex.on { background: linear-gradient(#d5a052, #b88230); }
+.model-view .tile { width: 72px; padding: 7px 4px; background: rgba(255,255,255,.96); }
+.model-view .tile span { font-size: 12px; }
+.model-view .tile.sel { background: #fff5e4; border-color: #d9a052; }
+.model-view #poster { background: #f1f5f7; }
+.model-view .pbar { background: rgba(241,245,247,.95); }
+.model-view button:focus-visible, .model-view a:focus-visible { outline: 3px solid #2d6b96; outline-offset: 4px; }
+#resetView {
+  position: fixed; z-index: 3; right: 22px; top: calc(88px + env(safe-area-inset-top));
+  min-width: 82px; min-height: 46px; padding: 0 14px; border-radius: 16px;
+  background: rgba(255,255,255,.88); box-shadow: var(--shadow); color: var(--ink-soft); font-size: 14px; font-weight: 700;
+}
+@media (max-width: 600px) {
+  .model-view .top { gap: 8px; padding: calc(12px + env(safe-area-inset-top)) 12px 0; }
+  .model-view .title { font-size: 24px; }
+  .model-view .title small { font-size: 11px; letter-spacing: 0; }
+  .model-view .rbtn.txt { font-size: 14px; padding: 0 10px; }
+  .model-view .hint { top: calc(82px + env(safe-area-inset-top)); font-size: 12px; }
+  .model-view .bottom { gap: 9px; padding: 0 10px calc(14px + env(safe-area-inset-bottom)); }
+  .model-view .cap { min-height: 88px; padding: 12px; gap: 10px; }
+  .model-view .cap .cd { font-size: 14px; }
+  .model-view .big { height: 64px; gap: 5px; font-size: 16px; border-radius: 18px; }
+  .model-view .ctrl { gap: 8px; }
+  #resetView { right: 12px; top: calc(120px + env(safe-area-inset-top)); min-height: 44px; font-size: 13px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .model-view *, .model-view *::before, .model-view *::after { transition-duration: .01ms !important; }
+}

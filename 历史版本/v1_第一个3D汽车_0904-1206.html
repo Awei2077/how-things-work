@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#FFF6E5">
+<title>汽车里面长什么样？· 它怎么动 3D</title>
+<style>
+:root{
+  --bg:#FFF6E5; --bg2:#FFEFD1;
+  --ink:#2B3A55; --ink-soft:#6B7A99; --ink-faint:#A5B0C4;
+  --card:#FFFFFF;
+  --sky:#5BB8F5; --sky-deep:#2F8FD6; --sky-tint:#E3F3FF;
+  --sun:#FFB020; --sun-deep:#E08E00; --sun-tint:#FFF1CC;
+  --leaf:#4CC38A; --leaf-tint:#DDF7E9;
+  --berry:#FF6B6B; --berry-deep:#E04848;
+  --shadow:0 4px 0 rgba(43,58,85,.10), 0 10px 24px rgba(43,58,85,.08);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+html,body{margin:0;height:100%;overflow:hidden;background:var(--bg)}
+body{font-family:"PingFang SC","HarmonyOS Sans SC","Hiragino Sans GB","Microsoft YaHei",system-ui,sans-serif;color:var(--ink);overscroll-behavior:none}
+button{font-family:inherit;border:0;cursor:pointer;color:inherit;background:none;padding:0}
+#c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;outline:0}
+#badges{position:fixed;inset:0;pointer-events:none;z-index:2;overflow:hidden}
+.badge{position:absolute;left:0;top:0;transform:translate(-50%,calc(-100% - 8px));pointer-events:auto;display:flex;align-items:center;gap:5px;
+  background:rgba(255,255,255,.94);border-radius:99px;padding:4px 7px;box-shadow:0 2px 0 rgba(43,58,85,.10),0 6px 14px rgba(43,58,85,.10);
+  font-size:14px;font-weight:800;color:var(--ink);white-space:nowrap;transition:opacity .25s,background .2s;cursor:pointer}
+.badge .e{font-size:19px;line-height:1}
+.badge .n{display:none;padding-right:3px}
+.badge.sel{background:var(--sun);color:#fff}
+.badge.sel .n{display:inline}
+.badge::after{content:"";position:absolute;left:50%;top:100%;width:2px;height:8px;background:rgba(255,255,255,.94);transform:translateX(-50%)}
+.badge.sel::after{background:var(--sun)}
+.badge.off{opacity:0;pointer-events:none}
+.top{position:fixed;top:0;left:0;right:0;z-index:3;display:flex;align-items:center;gap:10px;padding:calc(10px + env(safe-area-inset-top)) 14px 0;pointer-events:none}
+.top>*{pointer-events:auto}
+.title{flex:1;text-align:center;font-size:21px;font-weight:900;letter-spacing:1px;line-height:1.15;pointer-events:none!important}
+.title small{display:block;font-size:12px;color:var(--ink-soft);font-weight:700;letter-spacing:0;margin-top:2px}
+.rbtn{width:48px;height:48px;border-radius:16px;background:var(--card);box-shadow:var(--shadow);font-size:22px;display:flex;align-items:center;justify-content:center;transition:transform .1s;text-decoration:none}
+.rbtn:active{transform:scale(.92) translateY(2px)}
+.rbtn.off{opacity:.45}
+.hint{position:fixed;top:calc(74px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);z-index:3;background:rgba(43,58,85,.82);color:#fff;font-size:13px;font-weight:700;padding:7px 13px;border-radius:99px;pointer-events:none;transition:opacity .6s;white-space:nowrap}
+.hint.hide{opacity:0}
+.bottom{position:fixed;left:0;right:0;bottom:0;z-index:3;padding:0 12px calc(12px + env(safe-area-inset-bottom));max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:10px}
+.cap{background:rgba(255,255,255,.94);border-radius:22px;box-shadow:var(--shadow);padding:12px 16px;display:flex;align-items:center;gap:12px;min-height:78px}
+.cap .ce{font-size:38px;line-height:1;width:50px;text-align:center;flex:none}
+.cap .ct{flex:1;min-width:0}
+.cap .cn{font-size:20px;font-weight:900;line-height:1.2}
+.cap .cd{font-size:15px;color:var(--ink-soft);font-weight:600;line-height:1.4;margin-top:3px}
+.ctrl{display:grid;grid-template-columns:1.25fr 1fr 1fr;gap:10px}
+.big{height:66px;border-radius:20px;font-size:17px;font-weight:900;display:flex;align-items:center;justify-content:center;gap:6px;color:#fff;
+  box-shadow:0 5px 0 rgba(0,0,0,.14),0 10px 20px rgba(43,58,85,.10);transition:transform .08s,box-shadow .08s}
+.big:active{transform:translateY(4px);box-shadow:0 1px 0 rgba(0,0,0,.14)}
+.big .ic{font-size:22px;line-height:1}
+.big.go{background:linear-gradient(180deg,#5fd39a,#3aad74)} .big.go.on{background:linear-gradient(180deg,#ff8080,#e04848)}
+.big.xr{background:linear-gradient(180deg,#6cc2ff,#2f8fd6)} .big.xr.on{background:linear-gradient(180deg,#3a86c9,#1f5f9c)}
+.big.ex{background:linear-gradient(180deg,#ffc04d,#e08e00)} .big.ex.on{background:linear-gradient(180deg,#d98a00,#a86800)}
+@media (max-width:380px){.big{font-size:15px;height:60px;gap:4px}.big .ic{font-size:20px}.cap .cn{font-size:18px}.cap .cd{font-size:14px}}
+.draft-tag{position:fixed;top:0;left:0;font-size:11px;background:var(--ink);color:#fff;padding:3px 10px;border-radius:0 0 10px 0;opacity:.7;z-index:9;pointer-events:none}
+.nogl{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:30px;text-align:center;font-size:18px;font-weight:700;color:var(--ink-soft);z-index:20}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="badges"></div>
+<div class="draft-tag">3D 试验稿 · 汽车</div>
+<div class="top">
+  <a class="rbtn" href="ui-draft.html" title="回首页">🏠</a>
+  <div class="title">汽车<small>拖一拖转圈 · 点零件听听</small></div>
+  <button class="rbtn" id="mute" title="声音">🔊</button>
+</div>
+<div class="hint" id="hint">👆 用手指拖一拖，车子会转圈</div>
+<div class="bottom">
+  <div class="cap" id="cap"><div class="ce" id="ce">🚗</div><div class="ct"><div class="cn" id="cn">汽车</div><div class="cd" id="cd">点一点车上的零件，听听它叫什么。按「看里面」，看看它为什么会动。</div></div></div>
+  <div class="ctrl">
+    <button class="big go" id="go"><span class="ic">▶</span><span id="gotxt">开起来</span></button>
+    <button class="big xr" id="xr"><span class="ic">👀</span><span id="xrtxt">看里面</span></button>
+    <button class="big ex" id="ex"><span class="ic">🧩</span><span id="extxt">拆开看</span></button>
+  </div>
+</div>
+<div class="nogl" id="nogl">这个浏览器打不开 3D 画面，换 Safari 或 Chrome 试试。</div>
+<script src="../lib/three.min.js"></script>
+<script>
+/* ================= 基础工具 ================= */
+const $=s=>document.querySelector(s);
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const now=()=>performance.now();
+let muted=localStorage.getItem('muted')==='1';
+
+/* ================= 声音 & 朗读 ================= */
+const sfx={ctx:null,eng:null,
+  ac(){const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return null;if(!this.ctx)this.ctx=new AC();if(this.ctx.state==='suspended')this.ctx.resume();return this.ctx;},
+  tone(f,d,type='sine',g=.12,t0=0){const c=this.ac();if(!c||muted)return;const o=c.createOscillator(),ga=c.createGain();o.type=type;o.frequency.value=f;
+    const T=c.currentTime+t0;ga.gain.setValueAtTime(0,T);ga.gain.linearRampToValueAtTime(g,T+.01);ga.gain.exponentialRampToValueAtTime(.001,T+d);
+    o.connect(ga).connect(c.destination);o.start(T);o.stop(T+d+.02);},
+  click(){this.tone(900,.06,'square',.05)},
+  pop(){this.tone(220,.1,'triangle',.09)},
+  horn(){this.tone(440,.35,'square',.07);this.tone(554,.35,'square',.07)},
+  engine(){const c=this.ac();if(!c||muted||this.eng)return;const o=c.createOscillator(),lfo=c.createOscillator(),lg=c.createGain(),f=c.createBiquadFilter(),g=c.createGain();
+    o.type='sawtooth';o.frequency.value=52;lfo.type='sine';lfo.frequency.value=14;lg.gain.value=.03;lfo.connect(lg).connect(g.gain);
+    f.type='lowpass';f.frequency.value=260;g.gain.value=.06;o.connect(f).connect(g).connect(c.destination);o.start();lfo.start();this.eng={o,lfo,g};},
+  engineStop(){if(!this.eng)return;const {o,lfo,g}=this.eng,c=this.ctx;g.gain.setTargetAtTime(0,c.currentTime,.08);setTimeout(()=>{try{o.stop();lfo.stop()}catch(e){}},400);this.eng=null;}
+};
+function say(text){
+  if(muted||!('speechSynthesis' in window))return Promise.resolve();
+  return new Promise(res=>{
+    speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(text);u.lang='zh-CN';u.rate=.92;u.pitch=1.15;
+    const vs=speechSynthesis.getVoices().filter(v=>/zh[-_]CN/i.test(v.lang));
+    const pref=vs.find(v=>/Tingting|Ting-Ting|Xiaoxiao|Yunxi|普通话/i.test(v.name))||vs[0];if(pref)u.voice=pref;
+    let done=false;const fin=()=>{if(!done){done=true;res()}};u.onend=fin;u.onerror=fin;setTimeout(fin,6000);speechSynthesis.speak(u);
+  });
+}
+if('speechSynthesis' in window)speechSynthesis.getVoices();
+
+/* ================= 场景 ================= */
+const canvas=$('#c');let renderer;
+try{renderer=new THREE.WebGLRenderer({canvas,antialias:true,powerPreference:'high-performance'});}
+catch(e){$('#nogl').style.display='flex';throw e;}
+renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));
+renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+renderer.setClearColor(0xFFF6E5,1);
+const scene=new THREE.Scene();
+const camera=new THREE.PerspectiveCamera(40,1,.1,100);
+
+scene.add(new THREE.HemisphereLight(0xffffff,0xd9c9a8,.8));
+const sun=new THREE.DirectionalLight(0xfff4e0,.95);sun.position.set(6,10,5);sun.castShadow=true;
+sun.shadow.mapSize.set(1024,1024);Object.assign(sun.shadow.camera,{left:-8,right:8,top:8,bottom:-8,near:1,far:30});
+sun.shadow.camera.updateProjectionMatrix();sun.shadow.bias=-.0006;sun.shadow.normalBias=.02;scene.add(sun);
+const fill=new THREE.DirectionalLight(0xdfe9ff,.35);fill.position.set(-6,4,-6);scene.add(fill);
+
+const V=(x=0,y=0,z=0)=>new THREE.Vector3(x,y,z);
+const M=(color,o={})=>new THREE.MeshStandardMaterial(Object.assign({color,roughness:.6,metalness:.05},o));
+function mesh(geo,color,o){const m=new THREE.Mesh(geo,M(color,o));m.castShadow=true;return m;}
+const box=(w,h,d,c,o)=>mesh(new THREE.BoxGeometry(w,h,d),c,o);
+const cyl=(r,h,c,seg=24,o)=>mesh(new THREE.CylinderGeometry(r,r,h,seg),c,o);
+function tube(a,b,r,c,seg=8){const d=V().subVectors(b,a),len=d.length();const m=cyl(r,len,c,seg);
+  m.position.copy(a).add(b).multiplyScalar(.5);m.quaternion.setFromUnitVectors(V(0,1,0),d.normalize());return m;}
+
+/* 地面 + 路 */
+const ground=mesh(new THREE.CircleGeometry(7.5,64),0xF1E2C3,{roughness:1});ground.rotation.x=-Math.PI/2;ground.castShadow=false;ground.receiveShadow=true;scene.add(ground);
+const road=mesh(new THREE.BoxGeometry(13,.02,2.8),0xE8D5AE,{roughness:1});road.position.y=.01;road.castShadow=false;road.receiveShadow=true;scene.add(road);
+const dashes=[];for(let i=0;i<7;i++){const d=mesh(new THREE.BoxGeometry(.9,.02,.14),0xFFFDF7,{roughness:1});d.position.set(-6.3+i*1.8,.025,0);d.castShadow=false;scene.add(d);dashes.push(d);}
+
+/* ================= 汽车 ================= */
+const car=new THREE.Group();scene.add(car);
+const PARTS={},placed=[],hitTargets=[];
+function place(obj,home,explode){obj.position.copy(home);obj.userData.home=home.clone();obj.userData.explode=explode.clone();obj.userData.hopT0=-1e9;placed.push(obj);return obj;}
+function defPart(id,def,groups){
+  const p=PARTS[id]=Object.assign({id,meshes:[],groups},def);
+  for(const g of groups){car.add(g);g.traverse(o=>{if(!o.isMesh)return;o.userData.part=id;p.meshes.push(o);
+    const m=o.material;o.userData.baseEm=m.emissive.getHex();o.userData.baseInt=m.emissiveIntensity;o.userData.dynInt=m.emissiveIntensity;
+    if(!o.userData.noHit&&!o.userData.glass)hitTargets.push(o);});}
+  return p;
+}
+/* ---- 车壳 ---- */
+const BODY=0x5BB8F5;
+const shell=new THREE.Group(),shellMeshes=[];
+{
+  const body=box(4.4,.9,2.0,BODY);body.position.y=.98;shell.add(body);
+  const glass=box(2.1,.75,1.8,0xDFF3FF,{transparent:true,opacity:.5,roughness:.15,metalness:0,depthWrite:false});
+  glass.position.set(-.35,1.72,0);glass.castShadow=false;glass.userData.glass=true;glass.userData.baseOp=.5;shell.add(glass);
+  const roof=box(2.3,.14,1.92,BODY);roof.position.set(-.35,2.16,0);shell.add(roof);
+  for(const [x,z] of [[.65,.86],[.65,-.86],[-1.35,.86],[-1.35,-.86]]){const p=box(.1,.75,.1,BODY);p.position.set(x,1.72,z);shell.add(p);}
+  for(const s of [1,-1]){const b=box(.22,.3,2.04,0x2B3A55);b.position.set(s*2.2,.7,0);shell.add(b);}
+  for(const z of [.7,-.7]){const t=box(.06,.16,.3,0xE04848,{emissive:0xE04848,emissiveIntensity:.5});t.position.set(-2.22,1.15,z);t.userData.keepEm=true;shell.add(t);}
+  shell.traverse(o=>{if(o.isMesh){shellMeshes.push(o);if(o.userData.baseOp==null)o.userData.baseOp=1;}});
+  place(shell,V(0,0,0),V(0,2.4,0));
+}
+defPart('body',{name:'车身',emoji:'🚗',outside:true,anchorObj:shell,anchorOff:V(-.3,2.5,0),
+  text:'硬硬的车壳，像乌龟的壳，保护里面的人。'},[shell]);
+
+/* ---- 轮子 ---- */
+const wheelsG=new THREE.Group(),wheelSpin=[],frontYaw=[],wheelYaws=[];
+for(const [x,z] of [[1.45,1.05],[1.45,-1.05],[-1.45,1.05],[-1.45,-1.05]]){
+  const yaw=new THREE.Group(),spin=new THREE.Group();
+  const tire=cyl(.42,.32,0x2B3A55,28);tire.rotation.x=Math.PI/2;spin.add(tire);
+  const hub=cyl(.25,.34,0xE8E8EC,20);hub.rotation.x=Math.PI/2;spin.add(hub);
+  for(let k=0;k<4;k++){const sp=box(.07,.42,.36,0xFFD740);sp.rotation.z=k*Math.PI/4;spin.add(sp);}
+  yaw.add(spin);wheelsG.add(yaw);wheelSpin.push(spin);wheelYaws.push(yaw);if(x>0)frontYaw.push(yaw);
+  place(yaw,V(x,.42,z),V(0,0,Math.sign(z)*.9));
+}
+defPart('wheels',{name:'轮子',emoji:'🛞',outside:true,anchorObj:wheelYaws[0],anchorOff:V(0,.55,.4),
+  text:'四个轮子转呀转，车子就往前跑。',action(){S.wheelUntil=now()+3500;}},[wheelsG]);
+
+/* ---- 传动轴 / 车轴 ---- */
+const driveG=new THREE.Group(),axles=[];
+for(const x of [1.45,-1.45]){const a=cyl(.06,2.02,0x6B7A99,6);a.rotation.x=Math.PI/2;const g=new THREE.Group();g.add(a);g.position.set(x,.42,0);driveG.add(g);axles.push(g);}
+const shaftG=new THREE.Group();shaftG.position.set(-.15,.45,0);
+{const s=cyl(.075,2.6,0xA5B0C4,8);s.rotation.z=Math.PI/2;shaftG.add(s);const stripe=box(2.4,.05,.07,0xFF6B6B);stripe.position.y=.085;shaftG.add(stripe);}
+const gearbox=box(.5,.32,.4,0x6B7A99);gearbox.position.set(.55,.55,0);driveG.add(gearbox);driveG.add(shaftG);
+place(driveG,V(0,0,0),V(0,0,0));
+defPart('shaft',{name:'传动轴',emoji:'🦴',anchorObj:driveG,anchorOff:V(-.5,.5,-.7),
+  text:'力气顺着这根轴，从发动机一路传到后面的轮子。',action(){S.shaftUntil=now()+3500;S.wheelUntil=now()+3500;}},[driveG]);
+
+/* ---- 发动机 ---- */
+const engine=new THREE.Group(),pistons=[];
+{
+  const block=box(.95,.5,.85,0x6B7A99);engine.add(block);
+  const head=box(1.0,.12,.9,0x8592AD);head.position.y=.31;engine.add(head);
+  for(let i=0;i<4;i++){const p=cyl(.085,.28,0xFF6B6B,14);p.position.set(-.33+i*.22,.36,0);engine.add(p);pistons.push(p);}
+  const pulley=cyl(.16,.06,0xFFD740,18);pulley.rotation.z=Math.PI/2;pulley.position.set(.52,-.05,0);engine.add(pulley);
+  place(engine,V(1.35,.85,0),V(.5,1.4,0));
+}
+defPart('engine',{name:'发动机',emoji:'❤️',anchorObj:engine,anchorOff:V(0,.85,0),
+  text:'发动机是汽车的心脏，喝了汽油就突突突地转，力气传给轮子。',
+  action(){S.engineUntil=now()+3600;S.puffUntil=now()+3600;S.shaftUntil=now()+3600;}},[engine]);
+
+/* ---- 电池 ---- */
+const battery=new THREE.Group();
+{
+  const bb=box(.42,.32,.3,0x4CC38A);battery.add(bb);
+  for(const x of [-.12,.12]){const t=cyl(.035,.08,0xE8E8EC,10);t.position.set(x,.2,0);battery.add(t);}
+  const plus=box(.1,.03,.03,0xFFF6D5);plus.position.set(.12,.245,0);battery.add(plus);
+  battery.add(tube(V(.15,.16,0),V(1.0,.22,-.04),.022,0xE04848));
+  place(battery,V(1.15,.9,.7),V(.2,1.1,.6));
+}
+defPart('battery',{name:'电池',emoji:'🔋',anchorObj:battery,anchorOff:V(0,.55,.2),
+  text:'小电池管电：让车灯亮起来，让喇叭叭叭叫。',action(){S.lightsUntil=now()+3500;setTimeout(()=>sfx.horn(),350);}},[battery]);
+
+/* ---- 油箱 + 油管 ---- */
+const tank=new THREE.Group();
+{
+  const tb=box(.8,.4,1.1,0xFFB020);tank.add(tb);
+  const cap=cyl(.09,.08,0x2B3A55,12);cap.position.set(-.2,.24,.42);tank.add(cap);
+  tank.add(tube(V(.4,-.06,-.3),V(2.38,0,-.28),.035,0xE08E00));
+  place(tank,V(-1.5,.78,0),V(-.9,.9,0));
+}
+defPart('tank',{name:'油箱',emoji:'🍚',anchorObj:tank,anchorOff:V(0,.7,0),
+  text:'油箱是汽车的肚子。汽油是汽车的饭，顺着管子送去发动机。',action(){S.fuelUntil=now()+4000;}},[tank]);
+const FUEL_A=V(-1.1,.72,-.3),FUEL_B=V(.88,.78,-.28),fuelDots=[];
+for(let i=0;i<6;i++){const d=mesh(new THREE.SphereGeometry(.065,10,8),0xFFB020,{emissive:0xFFB020,emissiveIntensity:.6});d.castShadow=false;d.scale.setScalar(0);car.add(d);fuelDots.push(d);}
+
+/* ---- 排气管 + 烟 ---- */
+const exhaust=new THREE.Group();
+{
+  const pipe=cyl(.05,3.25,0x6B7A99,10);pipe.rotation.z=Math.PI/2;pipe.position.set(-.725,.5,.55);exhaust.add(pipe);
+  const tip=cyl(.075,.3,0x8592AD,12);tip.rotation.z=Math.PI/2;tip.position.set(-2.35,.5,.55);exhaust.add(tip);
+  const muf=box(.6,.16,.22,0x8592AD);muf.position.set(-.4,.5,.55);exhaust.add(muf);
+  place(exhaust,V(0,0,0),V(-.3,-.05,.9));
+}
+defPart('exhaust',{name:'排气管',emoji:'💨',anchorObj:exhaust,anchorOff:V(-2.45,.7,.55),
+  text:'发动机吃完饭会打嗝，从排气管噗噗噗冒出烟来。',action(){S.puffUntil=now()+3200;}},[exhaust]);
+const puffs=[];
+for(let i=0;i<12;i++){const p=mesh(new THREE.SphereGeometry(.14,10,8),0xC9CFDB,{transparent:true,opacity:0,depthWrite:false,roughness:1});p.castShadow=false;p.visible=false;p.userData.life=0;car.add(p);puffs.push(p);}
+
+/* ---- 车灯 ---- */
+const lightsG=new THREE.Group(),lamps=[],beams=[];
+for(const z of [.65,-.65]){
+  const l=cyl(.14,.1,0xFFF6D5,18,{emissive:0xFFD740,emissiveIntensity:0});l.rotation.z=Math.PI/2;l.position.set(2.24,1.1,z);l.userData.keepEm=true;lightsG.add(l);lamps.push(l);
+  const b=mesh(new THREE.ConeGeometry(.6,2.4,20,1,true),0xFFE58A,{transparent:true,opacity:0,depthWrite:false,emissive:0xFFE58A,emissiveIntensity:.6,side:THREE.DoubleSide});
+  b.rotation.z=Math.PI/2;b.position.set(3.44,1.05,z);b.castShadow=false;b.userData.noHit=true;b.userData.keepEm=true;lightsG.add(b);beams.push(b);
+}
+place(lightsG,V(0,0,0),V(.9,.5,0));
+defPart('lights',{name:'车灯',emoji:'💡',outside:true,anchorObj:lightsG,anchorOff:V(2.3,1.55,.65),
+  text:'车灯一亮，晚上也能看清路。',action(){S.lightsUntil=now()+3500;}},[lightsG]);
+
+/* ---- 方向盘 ---- */
+const steer=new THREE.Group(),steerSpin=new THREE.Group();
+{
+  steerSpin.add(mesh(new THREE.TorusGeometry(.2,.035,10,28),0x2B3A55));
+  for(let k=0;k<3;k++){const a=k*2*Math.PI/3+Math.PI/2;const sp=box(.04,.2,.03,0x2B3A55);sp.position.set(Math.cos(a)*.1,Math.sin(a)*.1,0);sp.rotation.z=a-Math.PI/2;steerSpin.add(sp);}
+  const hubC=cyl(.06,.05,0x6B7A99,12);hubC.rotation.x=Math.PI/2;steerSpin.add(hubC);
+  steer.add(steerSpin);
+  const P=V(.15,1.62,.5);place(steer,P,V(0,1.5,0));steer.lookAt(P.clone().add(V(-1,.5,0)));
+}
+defPart('steer',{name:'方向盘',emoji:'🎡',outside:true,anchorObj:steer,anchorOff:V(0,.75,.15),
+  text:'转一转方向盘，前面的轮子跟着转，车就拐弯啦。',action(){S.steerDemoUntil=now()+3800;}},[steer]);
+
+/* ---- 仪表台 + 启动按钮 ---- */
+const dash=new THREE.Group();let startBtn;
+{
+  const d=box(.3,.3,1.8,0x2B3A55);d.position.set(.55,1.55,0);dash.add(d);
+  startBtn=cyl(.075,.05,0x4CC38A,16,{emissive:0x4CC38A,emissiveIntensity:0});startBtn.position.set(.55,1.725,.2);startBtn.userData.keepEm=true;dash.add(startBtn);
+  const ring=cyl(.1,.03,0xE8E8EC,16);ring.position.set(.55,1.705,.2);dash.add(ring);
+  dash.add(tube(V(.45,1.5,.5),V(.2,1.6,.5),.03,0x2B3A55));
+  place(dash,V(0,0,0),V(0,1.1,0));
+}
+defPart('start',{name:'启动按钮',emoji:'🔘',outside:true,anchorObj:dash,anchorOff:V(.7,2.35,-.3),
+  text:'按一下，汽车就醒过来啦！'},[dash]);
+
+/* ---- 座椅（不可点）+ 安全座椅 ---- */
+const seatsG=new THREE.Group();
+{
+  for(const z of [.5,-.5]){const b=box(.5,.14,.5,0xFFF1CC);b.position.set(-.45,1.5,z);seatsG.add(b);const k=box(.14,.55,.5,0xFFF1CC);k.position.set(-.75,1.78,z);seatsG.add(k);}
+  const bench=box(.5,.14,1.7,0xFFF1CC);bench.position.set(-1.05,1.5,0);seatsG.add(bench);
+  const back=box(.14,.55,1.7,0xFFF1CC);back.position.set(-1.3,1.78,0);seatsG.add(back);
+  place(seatsG,V(0,0,0),V(0,.9,0));car.add(seatsG);
+}
+const cseat=new THREE.Group();
+{
+  const b=box(.44,.16,.44,0xFF6B6B);b.position.set(0,.08,0);cseat.add(b);
+  const k=box(.14,.34,.44,0xFF6B6B);k.position.set(-.16,.33,0);cseat.add(k);
+  for(const z of [.2,-.2]){const s=box(.44,.26,.06,0xFF6B6B);s.position.set(0,.25,z);cseat.add(s);}
+  for(const z of [.07,-.07]){const belt=box(.05,.26,.05,0x2B3A55);belt.position.set(-.06,.3,z);cseat.add(belt);}
+  place(cseat,V(-1.05,1.57,-.5),V(0,1.0,-.3));
+}
+defPart('seat',{name:'安全座椅',emoji:'🧸',outside:true,anchorObj:cseat,anchorOff:V(0,.85,-.2),
+  text:'宝宝坐在安全座椅上，扣好安全带，咔哒！',action(){sfx.click();setTimeout(()=>sfx.click(),160);}},[cseat]);
+
+/* ================= 状态 ================= */
+const S={drive:false,xray:false,explode:false,startOn:false,fuelOn:false,engineOn:false,shaftOn:false,wheelsOn:false,
+  wheelW:0,shaftW:0,steer:0,steerDemoUntil:0,pistonPh:0,pistonSpd:0,lights:0,fuel:0,puffTimer:0,
+  wheelUntil:0,engineUntil:0,shaftUntil:0,lightsUntil:0,fuelUntil:0,puffUntil:0,ex:0,xr:0,sel:null};
+const cam={theta:.95,phi:1.15,r:9.5,rBase:9.5,tTheta:.95,tPhi:1.15,zoom:1,ty:1.0,last:0};
+let W=1,H=1;
+function resize(){
+  W=innerWidth;H=innerHeight;renderer.setSize(W,H,false);const aspect=W/H;camera.aspect=aspect;
+  const hf=THREE.MathUtils.degToRad(50);const vf=THREE.MathUtils.radToDeg(2*Math.atan(Math.tan(hf/2)/aspect));
+  camera.fov=clamp(vf,38,70);
+  cam.rBase=vf>70?9.5*Math.tan(THREE.MathUtils.degToRad(vf)/2)/Math.tan(THREE.MathUtils.degToRad(70)/2):9.5;
+  const dy=Math.round(($('.bottom').offsetHeight-$('.top').offsetHeight)/2);
+  camera.setViewOffset(W,H,0,dy,W,H);camera.updateProjectionMatrix();
+}
+addEventListener('resize',resize);resize();
+
+function updateCamera(dt){
+  const t=now();if(t-cam.last>3500)cam.tTheta+=dt*.10;
+  const k=Math.min(1,dt*7);cam.theta+=(cam.tTheta-cam.theta)*k;cam.phi+=(cam.tPhi-cam.phi)*k;
+  const rT=cam.rBase*(S.explode?1.28:1)*cam.zoom;cam.r+=(rT-cam.r)*Math.min(1,dt*4);
+  const tyT=S.explode?1.9:1.0;cam.ty+=(tyT-cam.ty)*Math.min(1,dt*4);
+  const sp=Math.sin(cam.phi);
+  camera.position.set(cam.r*sp*Math.sin(cam.theta),cam.ty+cam.r*Math.cos(cam.phi),cam.r*sp*Math.cos(cam.theta));
+  camera.lookAt(0,cam.ty,0);
+}
+
+/* ================= 标签 ================= */
+const ORDER=['body','wheels','lights','steer','start','seat','engine','battery','tank','shaft','exhaust'],badgeEls={};
+for(const id of ORDER){const p=PARTS[id],el=document.createElement('div');el.className='badge off';
+  el.innerHTML=`<span class="e">${p.emoji}</span><span class="n">${p.name}</span>`;
+  el.addEventListener('pointerdown',e=>e.stopPropagation());el.addEventListener('click',()=>select(id));$('#badges').appendChild(el);badgeEls[id]=el;}
+const _v=new THREE.Vector3();
+function partVisible(p){if(p.id==='body')return !S.xray||S.explode;if(p.outside)return true;return S.xray||S.explode;}
+function updateBadges(){
+  for(const id of ORDER){const p=PARTS[id],el=badgeEls[id];
+    if(!partVisible(p)){el.classList.add('off');continue;}
+    _v.copy(p.anchorObj.position).add(p.anchorOff);car.localToWorld(_v);_v.project(camera);
+    if(_v.z>1){el.classList.add('off');continue;}
+    el.classList.remove('off');el.style.left=((_v.x+1)/2*W)+'px';el.style.top=((1-_v.y)/2*H)+'px';el.classList.toggle('sel',S.sel===id);}
+}
+
+/* ================= 主循环 ================= */
+let last=now();
+function frame(){
+  requestAnimationFrame(frame);
+  const t=now();let dt=Math.min((t-last)/1000,.05);last=t;
+  const drv=S.drive;
+  const fuelT=((drv&&S.fuelOn)||t<S.fuelUntil)?1:0;
+  const pistT=((drv&&S.engineOn)||t<S.engineUntil)?1:0;
+  const wheelWT=((drv&&S.wheelsOn)||t<S.wheelUntil)?9:0;
+  const shaftWT=(((drv&&S.shaftOn)||t<S.shaftUntil)||wheelWT>0)?12:0;
+  const lightsT=(drv||t<S.lightsUntil)?1:0;
+  const puffOn=(drv&&S.engineOn)||t<S.puffUntil;
+  const e=Math.min(1,dt*3.5);
+  S.fuel+=(fuelT-S.fuel)*e;S.pistonSpd+=(pistT-S.pistonSpd)*e;S.wheelW+=(wheelWT-S.wheelW)*Math.min(1,dt*2.5);
+  S.shaftW+=(shaftWT-S.shaftW)*e;S.lights+=(lightsT-S.lights)*Math.min(1,dt*6);
+  S.ex+=((S.explode?1:0)-S.ex)*Math.min(1,dt*3.2);S.xr+=((S.xray?1:0)-S.xr)*Math.min(1,dt*5);
+  const ee=S.ex*S.ex*(3-2*S.ex);
+
+  for(const o of placed){const u=o.userData;const hk=(t-u.hopT0)/520;const hop=hk<1?Math.sin(Math.PI*hk)*.16:0;
+    o.position.copy(u.home).addScaledVector(u.explode,ee);o.position.y+=hop;}
+  engine.position.x+=.012*Math.sin(t*.06)*S.pistonSpd;engine.position.y+=.006*Math.sin(t*.083)*S.pistonSpd;
+  shell.position.y+=.008*Math.sin(t*.05)*S.pistonSpd*(1-ee);
+
+  for(const s of wheelSpin)s.rotation.z-=S.wheelW*dt;
+  for(const a of axles)a.rotation.z-=S.wheelW*dt;
+  shaftG.rotation.x+=S.shaftW*dt;
+  for(const d of dashes){d.position.x-=S.wheelW*.42*dt;if(d.position.x<-6.3)d.position.x+=12.6;}
+
+  const steerT=t<S.steerDemoUntil?.42*Math.sin(t/1000*2.4):0;S.steer+=(steerT-S.steer)*Math.min(1,dt*5);
+  for(const y of frontYaw)y.rotation.y=S.steer;steerSpin.rotation.z=-2.6*S.steer;
+
+  S.pistonPh+=dt*26*S.pistonSpd;
+  pistons.forEach((p,i)=>{p.position.y=.36+.08*Math.sin(S.pistonPh+i*Math.PI/2);});
+
+  for(const l of lamps)l.userData.dynInt=1.6*S.lights;
+  for(const b of beams)b.material.opacity=.32*S.lights;
+  startBtn.userData.dynInt=drv?1.3:0;
+
+  fuelDots.forEach((d,i)=>{const u=((t/1000*.45)+i/6)%1;d.position.lerpVectors(FUEL_A,FUEL_B,u);d.scale.setScalar(S.fuel*(1-ee)*(.6+.4*Math.sin(u*Math.PI)));});
+
+  if(puffOn){S.puffTimer-=dt;if(S.puffTimer<=0){S.puffTimer=.2;const p=puffs.find(p=>!p.visible);
+    if(p){p.visible=true;p.userData.life=0;p.position.copy(exhaust.position).add(V(-2.55,.5,.55));p.scale.setScalar(.5);}}}
+  for(const p of puffs){if(!p.visible)continue;p.userData.life+=dt;const L=p.userData.life;if(L>1.5){p.visible=false;continue;}
+    p.position.x-=dt*(.9+S.wheelW*.05);p.position.y+=dt*.75;p.scale.setScalar(.5+L*1.4);p.material.opacity=.7*(1-L/1.5);}
+
+  for(const m of shellMeshes){const op=m.userData.baseOp*(1-.85*S.xr),mat=m.material;mat.opacity=op;const tr=op<.995;
+    mat.transparent=tr||!!m.userData.glass;mat.depthWrite=!tr&&!m.userData.glass;if(!m.userData.glass)m.castShadow=S.xr<.5;}
+
+  const pulse=.3+.25*Math.sin(t/1000*9);
+  for(const id in PARTS){const p=PARTS[id],isSel=S.sel===id;
+    for(const m of p.meshes){const u=m.userData,mat=m.material;
+      if(isSel&&!u.keepEm)mat.emissive.setHex(0xFFB020);else mat.emissive.setHex(u.baseEm);
+      mat.emissiveIntensity=u.dynInt+(isSel?pulse:0);}}
+
+  updateCamera(dt);
+  renderer.render(scene,camera);
+  updateBadges();
+}
+
+/* ================= 交互 ================= */
+const ray=new THREE.Raycaster(),m2=new THREE.Vector2();
+function pick(x,y){m2.set((x/W)*2-1,-(y/H)*2+1);ray.setFromCamera(m2,camera);
+  for(const h of ray.intersectObjects(hitTargets,false)){const id=h.object.userData.part;if(!id)continue;if(id==='body'&&S.xray)continue;return id;}return null;}
+const ptrs=new Map();let down=null,moved=false,pinchD=0;
+const pdist=()=>{const a=[...ptrs.values()];return Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y)};
+canvas.addEventListener('pointerdown',e=>{canvas.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(ptrs.size===1){down={x:e.clientX,y:e.clientY,t:now()};moved=false;}else{moved=true;if(ptrs.size===2)pinchD=pdist();}cam.last=now();hideHint();});
+canvas.addEventListener('pointermove',e=>{const p=ptrs.get(e.pointerId);if(!p)return;const dx=e.clientX-p.x,dy=e.clientY-p.y;p.x=e.clientX;p.y=e.clientY;
+  if(ptrs.size===1){if(down&&Math.hypot(e.clientX-down.x,e.clientY-down.y)>6)moved=true;cam.tTheta-=dx*.006;cam.tPhi=clamp(cam.tPhi-dy*.005,.5,1.45);}
+  else if(ptrs.size===2){const d=pdist();if(d>0&&pinchD>0)cam.zoom=clamp(cam.zoom*(pinchD/d),.6,1.8);pinchD=d;}
+  cam.last=now();});
+const up=e=>{if(!ptrs.has(e.pointerId))return;ptrs.delete(e.pointerId);
+  if(ptrs.size===0&&down&&!moved&&now()-down.t<600){const id=pick(e.clientX,e.clientY);if(id)select(id);}
+  if(ptrs.size===0)down=null;};
+canvas.addEventListener('pointerup',up);canvas.addEventListener('pointercancel',up);
+canvas.addEventListener('wheel',e=>{cam.zoom=clamp(cam.zoom*(1+e.deltaY*.0012),.6,1.8);cam.last=now();e.preventDefault();},{passive:false});
+
+function hideHint(){$('#hint').classList.add('hide');}
+setTimeout(hideHint,7000);
+function caption(e,n,d){$('#ce').textContent=e;$('#cn').textContent=n;$('#cd').textContent=d;}
+function hop(p){if(p.id==='wheels'){for(const y of wheelYaws)y.userData.hopT0=now();return;}for(const g of p.groups)if(g.userData.home)g.userData.hopT0=now();}
+function select(id){const p=PARTS[id];hideHint();sfx.ac();cam.last=now();S.sel=id;hop(p);sfx.click();
+  if(id==='start'){toggleDrive();return;}
+  caption(p.emoji,p.name,p.text);say(p.name+'。'+p.text);p.action&&p.action();}
+
+/* ---- 开起来：一步一步讲 ---- */
+const CHAIN=[
+  {t:'按一下启动按钮。',part:'start',on(){S.startOn=true}},
+  {t:'汽油从油箱顺着管子流向发动机。',part:'tank',inner:true,on(){S.fuelOn=true}},
+  {t:'发动机突突突转起来。',part:'engine',inner:true,on(){S.engineOn=true;sfx.engine()}},
+  {t:'力气顺着轴，传给后面的轮子。',part:'shaft',inner:true,on(){S.shaftOn=true}},
+  {t:'轮子转呀转，车子跑起来啦！',part:'wheels',on(){S.wheelsOn=true}},
+];
+let chainId=0;
+async function toggleDrive(){
+  const id=++chainId,go=$('#go');S.drive=!S.drive;sfx.ac();
+  if(!S.drive){S.startOn=S.fuelOn=S.engineOn=S.shaftOn=S.wheelsOn=false;sfx.engineStop();if('speechSynthesis' in window)speechSynthesis.cancel();
+    go.classList.remove('on');$('#gotxt').textContent='开起来';S.sel=null;caption('🅿️','停车啦','再按一下，再开一次！');say('停车啦');return;}
+  go.classList.add('on');$('#gotxt').textContent='停下';
+  for(let i=0;i<CHAIN.length;i++){
+    if(id!==chainId)return;
+    const s=CHAIN[i];s.on();
+    if(s.inner&&!S.xray)continue;
+    const p=PARTS[s.part];hop(p);S.sel=s.part;caption(p.emoji,p.name,s.t);
+    await Promise.race([say(s.t),sleep(4500)]);await sleep(muted?1300:250);
+  }
+  if(id!==chainId)return;
+  S.sel=null;
+  caption('🚗','嘟嘟～车子跑起来啦！',S.xray?'看，里面的零件都在忙！点「停下」再开一次。':'点「看里面」，看看它为什么会动。');
+}
+
+/* ---- 按钮 ---- */
+$('#go').onclick=()=>toggleDrive();
+$('#xr').onclick=()=>{S.xray=!S.xray;$('#xr').classList.toggle('on',S.xray);$('#xrtxt').textContent=S.xray?'合上':'看里面';sfx.click();cam.last=now();hideHint();
+  if(S.xray)caption('👀','看里面！','车壳变透明了。点点里面的零件，听听它们叫什么。');else caption('🚗','合上啦','再点「看里面」，或者拖一拖转个圈。');
+  say(S.xray?'看里面':'合上');};
+$('#ex').onclick=()=>{S.explode=!S.explode;$('#ex').classList.toggle('on',S.explode);$('#extxt').textContent=S.explode?'装回去':'拆开看';sfx.pop();cam.last=now();hideHint();
+  if(S.explode)caption('🧩','拆开看！','零件都飞开啦。点一点，看看每个零件是什么。');else caption('🚗','装回去啦','车子又变完整了。');
+  say(S.explode?'拆开看':'装回去');};
+const muteBtn=$('#mute');
+const paintMute=()=>{muteBtn.textContent=muted?'🔇':'🔊';muteBtn.classList.toggle('off',muted);};paintMute();
+muteBtn.onclick=()=>{muted=!muted;localStorage.setItem('muted',muted?'1':'0');paintMute();
+  if(muted){sfx.engineStop();if('speechSynthesis' in window)speechSynthesis.cancel();}else if(S.drive&&S.engineOn)sfx.engine();};
+document.addEventListener('visibilitychange',()=>{if(document.hidden){sfx.engineStop();if('speechSynthesis' in window)speechSynthesis.cancel();}else if(S.drive&&S.engineOn)sfx.engine();});
+
+frame();
+</script>
+</body>
+</html>

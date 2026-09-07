@@ -1,0 +1,22 @@
+#!/bin/bash
+# 部署到自己的静态服务器。用法：
+#   cp tools/deploy.sh.example tools/deploy.sh   然后填上自己的地址，chmod +x
+set -e
+cd "$(dirname "$0")/.."
+
+HOST=user@your-server.example.com   # 你的服务器
+KEY=~/.ssh/your_key                 # 你的 ssh 私钥
+DEST=/var/www/your-site             # 服务器上的站点目录
+
+python3 tools/build_pages.py >/dev/null
+rm -rf dist && mkdir -p dist
+cp -R index.html car.html washer.html elevator.html excavator.html jet.html \
+      app.js home.js lib3d.js lib scenes voice dist/
+find dist -name "._*" -o -name ".DS_Store" | xargs rm -f 2>/dev/null || true
+
+# 先解到 .new，再原子换过去，中途不会出现半个站点
+tar czf - -C dist . | ssh -i "$KEY" "$HOST" "rm -rf $DEST.new && mkdir -p $DEST.new && tar xzf - -C $DEST.new \
+  && find $DEST.new -name '._*' -delete \
+  && rm -rf $DEST.old && mv $DEST $DEST.old && mv $DEST.new $DEST && rm -rf $DEST.old \
+  && systemctl reload nginx"
+echo "已部署"

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>洗衣机 · 它怎么动</title>
+<style>
+:root{--bg:#FFF6E5;--ink:#2B3A55;--ink-soft:#6B7A99;--card:#FFFFFF;--sky:#5BB8F5;--sky-deep:#2F8FD6;--sun:#FFB020;--sun-deep:#E08E00;--leaf:#4CC38A;--shadow:0 4px 0 rgba(43,58,85,.10),0 10px 24px rgba(43,58,85,.08)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+html,body{margin:0;height:100%;overflow:hidden}
+body{font-family:"PingFang SC","HarmonyOS Sans SC","Hiragino Sans GB","Microsoft YaHei",system-ui,sans-serif;color:var(--ink);overscroll-behavior:none;background:#D6ECFB}
+button{font-family:inherit;border:0;cursor:pointer;color:inherit;background:none;padding:0}
+#sky-day,#sky-night{position:fixed;inset:0;z-index:0;pointer-events:none}
+#sky-night{opacity:0;transition:opacity 1.8s;background:url("data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22240%22%20height%3D%22240%22%3E%3Cg%20fill%3D%22white%22%3E%3Ccircle%20cx%3D%2220%22%20cy%3D%2230%22%20r%3D%221.2%22%20opacity%3D%220.9%22%2F%3E%3Ccircle%20cx%3D%2280%22%20cy%3D%2212%22%20r%3D%220.8%22%20opacity%3D%220.7%22%2F%3E%3Ccircle%20cx%3D%22140%22%20cy%3D%2244%22%20r%3D%221.4%22%20opacity%3D%220.95%22%2F%3E%3Ccircle%20cx%3D%22200%22%20cy%3D%2220%22%20r%3D%220.9%22%20opacity%3D%220.6%22%2F%3E%3Ccircle%20cx%3D%2260%22%20cy%3D%2290%22%20r%3D%221%22%20opacity%3D%220.8%22%2F%3E%3Ccircle%20cx%3D%22180%22%20cy%3D%22110%22%20r%3D%221.3%22%20opacity%3D%220.9%22%2F%3E%3Ccircle%20cx%3D%22110%22%20cy%3D%22150%22%20r%3D%220.8%22%20opacity%3D%220.6%22%2F%3E%3Ccircle%20cx%3D%2230%22%20cy%3D%22170%22%20r%3D%221.1%22%20opacity%3D%220.85%22%2F%3E%3Ccircle%20cx%3D%22220%22%20cy%3D%22160%22%20r%3D%220.9%22%20opacity%3D%220.7%22%2F%3E%3Ccircle%20cx%3D%22150%22%20cy%3D%22200%22%20r%3D%221.2%22%20opacity%3D%220.9%22%2F%3E%3Ccircle%20cx%3D%2290%22%20cy%3D%22220%22%20r%3D%220.7%22%20opacity%3D%220.6%22%2F%3E%3Ccircle%20cx%3D%22210%22%20cy%3D%22230%22%20r%3D%221%22%20opacity%3D%220.8%22%2F%3E%3Ccircle%20cx%3D%22120%22%20cy%3D%2280%22%20r%3D%220.6%22%20opacity%3D%220.5%22%2F%3E%3Ccircle%20cx%3D%2210%22%20cy%3D%22110%22%20r%3D%220.9%22%20opacity%3D%220.7%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E") repeat,linear-gradient(180deg,#0b1533 0%,#152a5c 45%,#2b4a7e 62%,#2b4a7e 100%)}
+body.night #sky-night{opacity:1}
+#sky-rain{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0;background:linear-gradient(180deg,#7f8a99 0%,#a9b3bf 45%,#c8cfd7 100%)}
+.moon{position:absolute;top:11%;right:14%;width:58px;height:58px;border-radius:50%;background:#FFF6D5;box-shadow:0 0 44px 12px rgba(255,240,200,.35)}
+#c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;outline:0;z-index:1}
+.top{position:fixed;top:0;left:0;right:0;z-index:3;display:flex;align-items:center;gap:10px;padding:calc(10px + env(safe-area-inset-top)) 14px 0;pointer-events:none}
+.top>*{pointer-events:auto}
+.title{flex:1;text-align:center;font-size:21px;font-weight:900;letter-spacing:1px;line-height:1.15;pointer-events:none!important}
+.title small{display:block;font-size:12px;color:var(--ink-soft);font-weight:700;letter-spacing:0;margin-top:2px}
+body.night .title{color:#fff}body.night .title small{color:rgba(255,255,255,.72)}
+.rbtn{width:48px;height:48px;border-radius:16px;background:var(--card);box-shadow:var(--shadow);display:flex;align-items:center;justify-content:center;transition:transform .1s;text-decoration:none;color:var(--ink)}
+.rbtn svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.rbtn:active{transform:scale(.92) translateY(2px)}
+.rbtn.off{opacity:.45}.rbtn.off svg .wave{display:none}
+.rbtn.txt{width:auto;padding:0 13px;font-size:15px;font-weight:900;letter-spacing:1px;color:var(--sky-deep)}
+.hint{position:fixed;top:calc(74px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);z-index:3;background:rgba(43,58,85,.82);color:#fff;font-size:13px;font-weight:700;padding:7px 13px;border-radius:99px;pointer-events:none;transition:opacity .6s;white-space:nowrap}
+.hint.hide{opacity:0}body.night .hint{background:rgba(255,255,255,.9);color:var(--ink)}
+.bottom{position:fixed;left:0;right:0;bottom:0;z-index:3;padding:0 12px calc(12px + env(safe-area-inset-bottom));max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:10px}
+.cap{background:rgba(255,255,255,.94);border-radius:22px;box-shadow:var(--shadow);padding:12px 16px;display:flex;align-items:center;gap:12px;min-height:78px}
+.cap .ce{width:56px;height:56px;flex:none;display:flex;align-items:center;justify-content:center;background:#F3F6FA;border-radius:16px}
+.cap .ce img{width:52px;height:52px;object-fit:contain}
+.cap .ct{flex:1;min-width:0}.cap .cn{font-size:20px;font-weight:900;line-height:1.2}
+.cap .cd{font-size:15px;color:var(--ink-soft);font-weight:600;line-height:1.4;margin-top:3px}
+.tray{display:none;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;-webkit-overflow-scrolling:touch;margin:0 -4px}
+.tray::-webkit-scrollbar{display:none}.tray.show{display:block}
+.tray-in{display:flex;gap:8px;padding:6px 4px}
+.tile{flex:none;width:66px;display:flex;flex-direction:column;align-items:center;gap:1px;background:rgba(255,255,255,.94);border-radius:16px;padding:6px 3px 5px;box-shadow:0 2px 0 rgba(43,58,85,.08),0 6px 14px rgba(43,58,85,.08);border:2.5px solid transparent;transition:transform .1s,border-color .15s}
+.tile img{width:44px;height:44px;object-fit:contain}
+.tile .ti{width:44px;height:44px;display:flex;align-items:center;justify-content:center;font-size:22px;color:#3aad74;font-weight:900}
+.tile span{font-size:11px;font-weight:800;color:var(--ink-soft);white-space:nowrap}
+.tile.sel{border-color:var(--sun);background:#FFF7E6}.tile.sel span{color:var(--sun-deep)}.tile:active{transform:scale(.94)}
+/* 正在讲这一句：其它图标先变灰按不动，等讲完自动亮回来 */
+body.talking .tile{pointer-events:none}
+body.talking .tile:not(.sel){opacity:.4;filter:grayscale(.85)}
+body.talking .tile.sel{border-color:var(--sun);background:#FFF7E6}
+.tile,.tile img,.tile span{transition:opacity .18s,filter .18s,transform .1s,border-color .15s}
+.ctrl{display:grid;grid-template-columns:1.25fr 1fr 1fr;gap:10px}
+.big{height:66px;border-radius:20px;font-size:17px;font-weight:900;display:flex;align-items:center;justify-content:center;gap:7px;color:#fff;box-shadow:0 5px 0 rgba(0,0,0,.14),0 10px 20px rgba(43,58,85,.10);transition:transform .08s,box-shadow .08s}
+.big:active{transform:translateY(4px);box-shadow:0 1px 0 rgba(0,0,0,.14)}
+.big svg{width:22px;height:22px;fill:none;stroke:#fff;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.big.go{background:linear-gradient(180deg,#5fd39a,#3aad74)}.big.go.on{background:linear-gradient(180deg,#ff8080,#e04848)}
+.big.xr{background:linear-gradient(180deg,#6cc2ff,#2f8fd6)}.big.xr.on{background:linear-gradient(180deg,#3a86c9,#1f5f9c)}
+.big.ex{background:linear-gradient(180deg,#ffc04d,#e08e00)}.big.ex.on{background:linear-gradient(180deg,#d98a00,#a86800)}
+@media (max-width:380px){.big{font-size:15px;height:60px;gap:4px}.cap .cn{font-size:18px}.cap .cd{font-size:14px}}
+.nogl{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:30px;text-align:center;font-size:18px;font-weight:700;color:var(--ink-soft);z-index:20}
+#infoBtn{display:none;flex:none;width:46px;height:46px;border-radius:14px;background:#EEF4FF;color:var(--sky-deep);font-size:13px;font-weight:900;align-items:center;justify-content:center;align-self:center}
+#infoBtn.show{display:flex}
+#poster{position:fixed;inset:0;z-index:5;background:#FFF6E5;overflow-y:auto;-webkit-overflow-scrolling:touch;transform:translateY(105%);transition:transform .3s;user-select:text;-webkit-user-select:text}
+#poster.show{transform:none}
+.pbar{position:sticky;top:0;z-index:2;display:flex;align-items:center;padding:calc(10px + env(safe-area-inset-top)) 16px 8px;background:rgba(255,246,229,.92);backdrop-filter:blur(8px);font-size:16px;font-weight:900}
+.pbar .x{margin-left:auto;width:38px;height:38px;border-radius:12px;background:#fff;box-shadow:var(--shadow);font-size:20px;color:var(--ink-soft)}
+.pp{max-width:760px;margin:0 auto;padding:6px 14px 40px}
+.pp h1{margin:6px 0 0;font-size:30px;font-weight:900;line-height:1.2;letter-spacing:1px}
+.pp h1::after{content:"？";color:var(--sun-deep)}
+.psub{display:inline-block;margin:10px 0 6px;padding:5px 12px;border-radius:99px;background:var(--sky-deep);color:#fff;font-size:13px;font-weight:800}
+.pbox{position:relative;width:100%;aspect-ratio:1/1;margin:6px 0 14px}
+.pbox img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+#pLeads{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.pc{position:absolute;width:32%;transform:translateY(-50%);display:flex;gap:7px;align-items:flex-start;background:rgba(255,255,255,.96);border-radius:14px;padding:8px 9px;box-shadow:0 2px 0 rgba(43,58,85,.08),0 8px 18px rgba(43,58,85,.12)}
+.pc i{flex:none;width:24px;height:24px;border-radius:50%;color:#fff;font-style:normal;font-weight:900;font-size:13px;display:flex;align-items:center;justify-content:center}
+.pc b{display:block;font-size:15px;line-height:1.2}.pc span{display:block;font-size:12px;color:var(--ink-soft);line-height:1.35;margin-top:3px}
+.pn{position:absolute;width:24px;height:24px;border-radius:50%;transform:translate(-50%,-50%);color:#fff;font-size:13px;font-weight:900;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 3px #fff,0 3px 8px rgba(0,0,0,.25)}
+.pp h2{margin:8px 0 8px;font-size:17px;font-weight:900;display:inline-block;padding:4px 12px;border-radius:99px;background:var(--ink);color:#fff}
+.psteps{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+@media(min-width:560px){.psteps{grid-template-columns:repeat(6,1fr)}}
+.ps{background:#fff;border-radius:14px;padding:8px 6px;text-align:center;box-shadow:var(--shadow);display:flex;flex-direction:column;align-items:center;gap:4px}
+.ps i{width:20px;height:20px;border-radius:50%;color:#fff;font-style:normal;font-weight:900;font-size:12px;display:flex;align-items:center;justify-content:center}
+.ps img{width:44px;height:44px;object-fit:contain}.ps span{font-size:11.5px;font-weight:700;line-height:1.3}
+.psum{margin:14px 0 6px;padding:12px 14px;border-radius:16px;background:#fff;box-shadow:var(--shadow);font-size:18px;font-weight:900;text-align:center}
+.pmore .pm{display:flex;gap:10px;align-items:flex-start;padding:10px;border-radius:16px;background:#fff;margin-bottom:8px;box-shadow:var(--shadow)}
+.pm i{flex:none;width:22px;height:22px;border-radius:50%;color:#fff;font-style:normal;font-weight:900;font-size:12px;display:flex;align-items:center;justify-content:center;margin-top:2px}
+.pm img{width:52px;height:52px;flex:none;object-fit:contain;background:#F7F9FC;border-radius:12px}
+.pm div{flex:1;min-width:0}.pm b{font-size:15px}.pm p{margin:3px 0 0;font-size:13px;color:var(--ink);line-height:1.5}
+.pm .sp{flex:none;width:34px;height:34px;border-radius:11px;background:var(--leaf);color:#fff;font-size:13px;font-weight:900;align-self:center}
+.pfoot{text-align:center;color:var(--ink-soft);font-size:12px;font-weight:700;margin-top:18px}
+</style>
+</head>
+<body>
+<div id="sky-day"></div><div id="sky-night"><div class="moon"></div></div><div id="sky-rain"></div>
+<canvas id="c"></canvas>
+<div class="top">
+  <a class="rbtn" href="index.html" title="回首页"><svg viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10.5V20h13v-9.5"/><path d="M10 20v-5h4v5"/></svg></a>
+  <div class="title"><span id="ttl">洗衣机</span><small id="subtitle"></small></div>
+  <button class="rbtn txt" id="voice" title="换声音">云夏</button>
+  <button class="rbtn" id="mute" title="声音"><svg viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path class="wave" d="M16 9.5a3.5 3.5 0 0 1 0 5"/><path class="wave" d="M18.5 7a7 7 0 0 1 0 10"/></svg></button>
+</div>
+<div class="hint" id="hint">用手指拖一拖，会转圈</div>
+<div class="bottom">
+  <div class="tray" id="tray"><div class="tray-in" id="trayIn"></div></div>
+  <div class="cap" id="cap"><div class="ce" id="ce"></div><div class="ct"><div class="cn" id="cn">洗衣机</div><div class="cd" id="cd"></div></div><button id="infoBtn" title="零件小百科">图文</button></div>
+  <div class="ctrl">
+    <button class="big go" id="go"><svg viewBox="0 0 24 24"><path d="M7 5v14l11-7z"/></svg><span id="gotxt">开起来</span></button>
+    <button class="big xr" id="xr"><svg viewBox="0 0 24 24"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg><span id="xrtxt">看里面</span></button>
+    <button class="big ex" id="ex"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg><span id="extxt">拆开看</span></button>
+  </div>
+</div>
+<div id="poster">
+  <div class="pbar"><span>零件图文</span><button class="x" id="posterClose" aria-label="关闭">×</button></div>
+  <div class="pp">
+    <h1 id="pTitle"></h1><p class="psub" id="pSub"></p>
+    <div class="pbox" id="pBox"><img id="pImg" alt=""><svg id="pLeads" viewBox="0 0 100 100" preserveAspectRatio="none"></svg></div>
+    <h2>工作过程</h2><div class="psteps" id="pSteps"></div>
+    <div class="psum" id="pSum"></div>
+    <h2>给爸爸妈妈的详细说明</h2><div class="pmore" id="pMore"></div>
+    <p class="pfoot">它怎么动 · 3D 互动科普</p>
+  </div>
+</div>
+<div class="nogl" id="nogl">这个浏览器打不开 3D 画面，换 Safari 或 Chrome 试试。</div>
+<script src="lib/three.min.js?v=1788493942"></script>
+<script src="lib3d.js?v=1788697758"></script>
+<script src="scenes/washer.js?v=1788583186"></script>
+<script>window.SCENE_ID='washer';</script>
+<script src="voice/lines.js?v=1788766807"></script>
+<script src="app.js?v=1788702339"></script>
+</body>
+</html>
