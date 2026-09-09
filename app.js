@@ -126,7 +126,7 @@ function updateCamera(dt){
     const vf=THREE.MathUtils.degToRad(camera.fov/2),hf=Math.atan(Math.tan(vf)*camera.aspect);
     const distance=Math.max(b.radius/Math.sin(hf),b.radius/Math.sin(vf)/freeRatio)*1.08;
     rT=clamp(distance,cam.rBase*.22,cam.rBase*1.6)*cam.zoom;}
-  else{const oy=OBJ.camY?OBJ.camY():0;tgt=_tgt.set(FIT.cx||0,(S.explode?FIT.tyEx:FIT.ty)+oy,0);rT=cam.rBase*(S.explode?FIT.rEx:1)*cam.zoom;}// 主体自己会升高时（比如飞机爬升），镜头跟着抬
+  else{const oy=OBJ.camY?OBJ.camY():0,ox=OBJ.camX?OBJ.camX():0;tgt=_tgt.set((FIT.cx||0)+ox,(S.explode?FIT.tyEx:FIT.ty)+oy,0);rT=cam.rBase*(S.explode?FIT.rEx:1)*cam.zoom;}// 主体自己会升高时（比如飞机爬升），镜头跟着抬
   if(!isFinite(cam.r))cam.r=rT;cam.r+=(rT-cam.r)*Math.min(1,dt*4);cam.target.lerp(tgt,Math.min(1,dt*4));
   const sp=Math.sin(cam.phi);
   camera.position.set(cam.target.x+cam.r*sp*Math.sin(cam.theta),cam.target.y+cam.r*Math.cos(cam.phi),cam.target.z+cam.r*sp*Math.cos(cam.theta));
@@ -215,7 +215,7 @@ async function tour(){const id=++tourId;hush();touring=true;paintGo();unfocus();
 let last=now(),focusDim=0;
 function frame(){
   requestAnimationFrame(frame);
-  const t=now();let dt=Math.min((t-last)/1000,.05);last=t;
+  const t=now();let dt=Math.max(0,Math.min((t-last)/1000,.05));last=t;// dt 必须非负：一旦为负，所有缓动的插值系数会翻号，数值直接发散
   if(busy()&&t-talkT0>45000){talking=0;hold=0;paintTalk();}
   S.ex+=((S.explode?1:0)-S.ex)*Math.min(1,dt*3.2);S.xr+=((S.xray?1:0)-S.xr)*Math.min(1,dt*5);EE=S.ex*S.ex*(3-2*S.ex);
   S.night+=(S.nightT-S.night)*Math.min(1,dt*1.3);const nn=S.night;
