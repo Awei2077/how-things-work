@@ -4,10 +4,6 @@
 # 构建产物
 dist/
 
-# 配音音频：由 edge-tts（微软 Edge 朗读服务）生成，未授权再分发。
-# 自己跑 tools/gen_voice.py 就能重新生成，见 README。
-voice/*/*.mp3
-
 # 部署脚本含服务器地址和密钥路径，请从 deploy.sh.example 复制一份自己的
 tools/deploy.sh
 

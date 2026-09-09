@@ -39,22 +39,24 @@ python3 tools/build_pages.py
 ## 关于配音
 
 站里的讲解声音是 **edge-tts**（微软 Edge 的朗读服务）生成的，免费、不需要任何 API key。
+两套声音都已经放进仓库，**下载下来直接就能听**：
 
-但**音频文件没有放进仓库**——微软没有授权再分发它生成的语音。所以你下载下来第一次打开，听到的是浏览器自带的系统朗读（能用，就是机器味重一点）。
+- **云夏** zh-CN-YunxiaNeural（男童声）
+- **小依** zh-CN-XiaoyiNeural（女童声）
+- **系统** —— 浏览器自带的朗读，不依赖任何文件
 
-想要好听的那两个声音，跑两条命令，全部在你本地生成：
+右上角可以随时切换。共 291 句、584 个 mp3、约 19 MB，细节见 [voice/README.md](voice/README.md)。
+
+改了旁白文案以后重新生成：
 
 ```bash
 pip install edge-tts
-python3 tools/gen_voice.py      # 生成 voice/yunxia/*.mp3 和 voice/xiaoyi/*.mp3
+python3 tools/gen_voice.py      # 只补新增的句子，已有的自动跳过
+python3 tools/check_voice.py    # 核对页面会念的每一句是不是都有音频
 python3 tools/build_pages.py    # 刷新配音对照表
 ```
 
-大约 8 MB，一两分钟。改了旁白文案后重跑一遍即可，已有的会自动跳过。
-
-右上角可以在「云夏 / 小依 / 系统」三个声音之间切换。
-
----
+`check_voice.py` 值得一跑：漏一句不会报错，只是页面念到那里悄悄变成机器音，很难发现。
 
 ## 建模是怎么做的
 
@@ -131,4 +133,4 @@ MIT，见 [LICENSE](LICENSE)。随便拿去改、拿去教自己家小孩。
 
 内含 three.js（MIT，Copyright 2010-2021 Three.js Authors）。
 
-配音音频不在仓库里，请自行用 `tools/gen_voice.py` 生成。
+配音音频由 edge-tts 调用微软 Edge 朗读服务生成，随仓库一起提供，见 [voice/README.md](voice/README.md)。
