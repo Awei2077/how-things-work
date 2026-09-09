@@ -50,6 +50,7 @@ SCENES.sweeper=Object.assign({
 
   build(ctx,_api){
     api=_api;
+    ctx=RIG.upgrade(ctx);
     const {THREE,V,mm,roundedBox,steel,dark,matte,plastic,place,defPart,markShell,root}=ctx;
     const BLU=0x3E7BC6;
     R=RIG.seqRunner(S,KEYS);
@@ -192,6 +193,7 @@ SCENES.sweeper=Object.assign({
       {t:'车底的大嘴巴一口吸走，路就干净了！',part:'suction'},
     ];
 
+    ctx.linearize();
     return {update,chain,
       onStop(){R.stop();S.engineOn=false;for(const k of KEYS)S[k+'T']=0;},
       onStart(){},onDone(){S.engineOn=false;}};

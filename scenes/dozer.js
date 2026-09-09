@@ -32,8 +32,9 @@ function nextSeg(){
 SCENES.dozer={
   id:'dozer',title:'推土机',subtitle:'拖一拖转圈 · 点零件听听',night:false,
   sky:'linear-gradient(180deg,#7FBFFF 0%,#A9D4FF 28%,#D6ECFB 48%,#D6ECFB 100%)',
-  envMap:['#9fd0ff','#e6f3ff','#c9a56a','#a07b46'],hemi:{sky:0xdfefff,ground:0xc9a56a},
+  envMap:['#cfe0f0','#eef4fa','#b6bfc9','#8d97a2'],hemi:{sky:0xdfefff,ground:0xc9a56a},
   fog:{color:0xD6ECFB,near:24,far:52},
+  look:{srgb:true,hemi:.55,sun:.95,fill:.28,rim:.4,exposure:1.0,autoRotate:.10},
   fit:{w:10,h:5.2,ty:1.5,tyEx:2.4,rEx:1.3,cx:1.2},cameraStart:{theta:.95,phi:1.2},
   order:['blade','arms','lift','tracks','cab','engine','hood','ripper','start'],
   go:{on:'开始推',off:'停下',stopSaid:'停下啦',stopHint:'再按一下，再推一次！',
@@ -94,6 +95,7 @@ SCENES.dozer={
   /* ---------- 车体 ---------- */
   build(ctx,_api){
     api=_api;
+    ctx=RIG.upgrade(ctx);
     const {THREE,V,mm,roundedBox,tubeM,steel,dark,matte,plastic,place,defPart,markShell,root}=ctx;
     const yel=()=>plastic(YEL);
 
@@ -324,6 +326,7 @@ SCENES.dozer={
       {t:'土越推越多，堆成一大堆！',part:'blade'},
     ];
 
+    ctx.linearize();
     return {update,chain,
       camX(){return D.drive*.8*(1-api.ee);},
       onStop(){D.seq=null;D.reps=0;D.startOn=D.engineOn=false;D.bladeT=0;D.driveT=0;D.pileT=0;},

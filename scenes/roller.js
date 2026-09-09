@@ -59,6 +59,7 @@ SCENES.roller=Object.assign({
 
   build(ctx,_api){
     api=_api;
+    ctx=RIG.upgrade(ctx);
     const {THREE,V,mm,roundedBox,tubeM,steel,chrome,dark,matte,plastic,glassMat,place,defPart,markShell,root}=ctx;
     const YEL=0xF2B233,yel=()=>plastic(YEL);
 
@@ -234,6 +235,7 @@ SCENES.roller=Object.assign({
       {t:'又压又震，石子被挤得紧紧的，路就平了。',part:'drum'},
     ];
 
+    ctx.linearize();
     return {update,chain,
       onStop(){R.seq=null;R.reps=0;R.engineOn=false;R.driveT=R.sprayT=R.vibT=0;},
       onStart(){},onDone(){R.engineOn=false;}};

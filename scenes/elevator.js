@@ -8,7 +8,8 @@ let api=null;const now=()=>api.now();
 SCENES.elevator={
   id:'elevator',title:'电梯',subtitle:'拖一拖转圈 · 点零件听听',night:false,
   sky:'linear-gradient(180deg,#F8F5F0 0%,#EEE9E1 55%,#DED6CA 100%)',
-  envMap:['#ffffff','#f5f1ea','#d9d1c4','#b9b0a2'],hemi:{sky:0xfff6ea,ground:0xb9ad9a},
+  look:{srgb:true,hemi:.55,sun:.95,fill:.28,rim:.4,exposure:1.0,autoRotate:.10},
+  envMap:['#f2f5f8','#ffffff','#ccd3da','#a8b0b8'],hemi:{sky:0xfff6ea,ground:0xb9ad9a},
   fit:{w:5.2,h:8.8,ty:3.1,tyEx:3.4,rEx:1.15},cameraStart:{theta:.35,phi:1.3},
   order:['cab','doors','machine','ropes','cw','rails','buffers','start','body'],
   go:{on:'坐电梯',off:'停下',stopSaid:'停下啦',stopHint:'再按一下，再坐一次！',done:'电梯就这样一趟一趟上上下下。',doneHintXray:'看，电机、钢绳、对重一起在忙。点「停下」再坐一次。',doneHint:'点「看里面」，看看是谁在拉电梯。'},
@@ -53,7 +54,7 @@ SCENES.elevator={
   },
 
   build(ctx,_api){
-    api=_api;const {THREE,V,mm,roundedBox,capsule,tubeM,pathTube,chrome,steel,dark,matte,flat,plastic,glassMat,place,defPart,markShell,root}=ctx;
+    api=_api;ctx=RIG.upgrade(ctx);const {THREE,V,mm,roundedBox,capsule,tubeM,pathTube,chrome,steel,dark,matte,flat,plastic,glassMat,place,defPart,markShell,root}=ctx;
     const H=TOP_Y+1.1;
     /* ---- 楼房（外壳）：后墙、两侧墙、楼板、机房 ---- */
     const shell=new THREE.Group();
@@ -221,6 +222,7 @@ SCENES.elevator={
       {t:'到三楼啦！叮——门打开，小朋友走出来。',part:'cab',on(){E.exitPending=true;E.loopOn=true;E.loopAt=0;}},
     ];
     SCENES.elevator._dbg={E,K,kidEnter,kidExit,kidReset};
+    ctx.linearize();
     return {update,chain,hideOnExplode:[...shell.userData.landing,kid],onStop(){E.doorT=0;E.rideStep=0;E.cabT=0;E.exitPending=false;E.loopOn=false;E.loopAt=0;kidReset();},onStart(){},onDone(){}};
   }
 };

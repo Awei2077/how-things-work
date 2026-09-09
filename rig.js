@@ -304,13 +304,17 @@ function site(ctx,o){
 }
 
 /* 各场景公用的天空/雾/环境反射配置，省得每个文件抄一遍 */
+/* 反射用的环境贴图一律用中性灰蓝：它只管反射，背景仍然是 CSS 天空。
+   原来下半是土黄/草绿，镀铬件和玻璃会照出一片脏色。 */
+const NEUTRAL=['#cfe0f0','#eef4fa','#b6bfc9','#8d97a2'];
+const LOOK={srgb:true,hemi:.55,sun:.95,fill:.28,rim:.4,exposure:1.0,autoRotate:.10};
 const SKY={
   site:{sky:'linear-gradient(180deg,#7FBFFF 0%,#A9D4FF 28%,#D6ECFB 48%,#D6ECFB 100%)',
-    envMap:['#9fd0ff','#e6f3ff','#c9a56a','#a07b46'],hemi:{sky:0xdfefff,ground:0xc9a56a},
-    fog:{color:0xD6ECFB,near:24,far:52}},
+    envMap:NEUTRAL,hemi:{sky:0xdfefff,ground:0xc9a56a},
+    fog:{color:0xD6ECFB,near:24,far:52},look:LOOK},
   street:{sky:'linear-gradient(180deg,#7FBFFF 0%,#A9D4FF 28%,#D6ECFB 48%,#D6ECFB 100%)',
-    envMap:['#9fd0ff','#e6f3ff','#b6bfc9','#8d97a2'],hemi:{sky:0xdfefff,ground:0x9aa4b2},
-    fog:{color:0xD6ECFB,near:26,far:56}},
+    envMap:NEUTRAL,hemi:{sky:0xdfefff,ground:0x9aa4b2},
+    fog:{color:0xD6ECFB,near:26,far:56},look:LOOK},
 };
 
 /* 动作序列机：每台车的「开起来」都是一串定时的状态过渡，逻辑完全一样。
@@ -369,5 +373,27 @@ function engine(ctx,o){
   return {group:g,fan,spin(dt,k){fan.rotation.x+=dt*k*20;}};
 }
 
-return {crawler,cab,ram,wheel,truck,boom,outrigger,drum,site,SKY,seqRunner,startBtn,engine};
+/* 材质升级：Codex 给汽车那套做法，抽出来给所有工程车共用。
+   要点是三条——
+   1) 线性色彩管线（look.srgb + ctx.linearize()），高光和暗部的过渡才对；
+   2) 环境反射用中性灰蓝，别用带土黄/草绿的天空渐变，不然镀铬件照出一片脏色；
+   3) 车漆加清漆、橡胶更哑、玻璃更深，平面上的反光才像钣金不像塑料玩具。
+   用法：build(ctx,api) 里第一行 ctx=RIG.upgrade(ctx)，再解构材质。 */
+function upgrade(ctx){
+  const T=ctx.THREE;
+  return Object.assign({},ctx,{
+    paint:(c=0xbd1829)=>new T.MeshPhysicalMaterial({color:c,metalness:.2,roughness:.24,
+      clearcoat:.7,clearcoatRoughness:.18,envMapIntensity:.9}),
+    plastic:(c=0xF2B233)=>new T.MeshPhysicalMaterial({color:c,metalness:.14,roughness:.3,
+      clearcoat:.55,clearcoatRoughness:.24,envMapIntensity:.7}),
+    chrome:()=>new T.MeshStandardMaterial({color:0xd8dee5,metalness:.9,roughness:.3,envMapIntensity:.6}),
+    steel:(c=0x7c8590)=>new T.MeshStandardMaterial({color:c,metalness:.68,roughness:.36,envMapIntensity:.55}),
+    dark:(c=0x222830)=>new T.MeshStandardMaterial({color:c,metalness:.05,roughness:.82}),
+    matte:(c)=>new T.MeshStandardMaterial({color:c,metalness:.03,roughness:.78}),
+    glassMat:(c=0x75909c,op=.54)=>new T.MeshPhysicalMaterial({color:c,metalness:.12,roughness:.08,
+      transparent:true,opacity:op,depthWrite:false,envMapIntensity:1.1}),
+  });
+}
+
+return {crawler,cab,ram,wheel,truck,boom,outrigger,drum,site,SKY,seqRunner,startBtn,engine,upgrade};
 })();

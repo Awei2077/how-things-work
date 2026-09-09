@@ -61,6 +61,7 @@ SCENES.firetruck=Object.assign({
 
   build(ctx,_api){
     api=_api;
+    ctx=RIG.upgrade(ctx);
     const {THREE,V,mm,roundedBox,steel,chrome,dark,matte,plastic,place,defPart,markShell,root}=ctx;
     const RED=0xD8382C;
     R=RIG.seqRunner(S,KEYS);
@@ -271,6 +272,7 @@ SCENES.firetruck=Object.assign({
       {t:'水炮喷水，把火浇灭！',part:'monitor'},
     ];
 
+    ctx.linearize();
     return {update,chain,
       onStop(){R.stop();S.engineOn=false;for(const k of KEYS)S[k+'T']=0;},
       onStart(){},onDone(){S.engineOn=false;}};

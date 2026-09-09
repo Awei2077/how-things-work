@@ -46,6 +46,7 @@ SCENES.towercrane=Object.assign({
 
   build(ctx,_api){
     api=_api;
+    ctx=RIG.upgrade(ctx);
     const {THREE,V,mm,roundedBox,tubeM,steel,chrome,dark,matte,plastic,place,defPart,markShell,root}=ctx;
     const YEL=0xF2B233;
     R=RIG.seqRunner(S,KEYS);
@@ -211,6 +212,7 @@ SCENES.towercrane=Object.assign({
       {t:'钩子放下去，材料稳稳落在楼上。',part:'hook'},
     ];
 
+    ctx.linearize();
     return {update,chain,
       onStop(){R.stop();for(const k of KEYS)S[k+'T']=0;},
       onStart(){},onDone(){}};

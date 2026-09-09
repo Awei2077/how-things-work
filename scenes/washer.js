@@ -9,7 +9,8 @@ const TUB_C={x:.05,y:1.3};
 SCENES.washer={
   id:'washer',title:'洗衣机',subtitle:'拖一拖转圈 · 点零件听听',night:false,
   sky:'linear-gradient(180deg,#F7F1E8 0%,#EDE4D6 55%,#E2D7C6 100%)',
-  envMap:['#ffffff','#f7f1e7','#d8cfbf','#b6ab98'],hemi:{sky:0xfff6ea,ground:0xb9ad9a},
+  look:{srgb:true,hemi:.55,sun:.95,fill:.28,rim:.4,exposure:1.0,autoRotate:.10},
+  envMap:['#f2f5f8','#ffffff','#ccd3da','#a8b0b8'],hemi:{sky:0xfff6ea,ground:0xb9ad9a},
   fit:{w:4.8,h:4.6,ty:1.3,tyEx:1.9,rEx:1.25},cameraStart:{theta:.8,phi:1.22},
   order:['door','drum','tub','motor','inlet','drawer','pump','springs','start','body'],
   go:{on:'开始洗',off:'停下',stopSaid:'停下啦',stopHint:'再按一下，再洗一次！',done:'洗好啦！衣服干干净净。',doneHintXray:'看，里面的水和筒都忙完了。点「停下」再来一次。',doneHint:'点「看里面」，看看水和电机在哪儿。'},
@@ -63,7 +64,7 @@ SCENES.washer={
   },
 
   build(ctx,_api){
-    api=_api;const {THREE,V,mm,roundedBox,capsule,tubeM,pathTube,paint,chrome,steel,dark,matte,flat,plastic,glassMat,place,defPart,markShell,root,canvasTex}=ctx;
+    api=_api;ctx=RIG.upgrade(ctx);const {THREE,V,mm,roundedBox,capsule,tubeM,pathTube,paint,chrome,steel,dark,matte,flat,plastic,glassMat,place,defPart,markShell,root,canvasTex}=ctx;
     /* ---- 外壳 ---- */
     const shell=new THREE.Group();
     {
@@ -209,6 +210,7 @@ SCENES.washer={
       {t:'排水泵把脏水抽出去。',part:'pump',inner:true,on(){M.drainOn=true;M.washOn=false}},
       {t:'内筒飞快地转，把水都甩出去！',part:'drum',on(){M.spinOn=true;M.washOn=true;M.drainOn=true;}},
     ];
+    ctx.linearize();
     return {update,chain,onStop(){M.fillOn=M.soapOn=M.washOn=M.drainOn=M.spinOn=false;},onStart(){},onDone(){M.washOn=M.spinOn=M.drainOn=false;M.levelT=0;M.doorT=1;api.sfx.door();}};
   }
 };

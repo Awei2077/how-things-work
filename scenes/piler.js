@@ -62,6 +62,7 @@ SCENES.piler=Object.assign({
 
   build(ctx,_api){
     api=_api;
+    ctx=RIG.upgrade(ctx);
     const {THREE,V,mm,roundedBox,steel,dark,matte,plastic,place,defPart,markShell,root}=ctx;
     const YEL=0xF2B233;
     R=RIG.seqRunner(S,KEYS);
@@ -201,6 +202,7 @@ SCENES.piler=Object.assign({
       {t:'砰！砰！桩一下一下扎进地里。',part:'hammer'},
     ];
 
+    ctx.linearize();
     return {update,chain,
       onStop(){R.stop();S.engineOn=false;for(const k of KEYS)S[k+'T']=0;},
       onStart(){S.pileT=0;S.pile=0;},onDone(){S.engineOn=false;}};

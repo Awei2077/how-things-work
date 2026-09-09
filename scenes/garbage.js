@@ -36,6 +36,7 @@ SCENES.garbage=Object.assign({
 
   build(ctx,_api){
     api=_api;
+    ctx=RIG.upgrade(ctx);
     const {THREE,V,mm,roundedBox,steel,dark,matte,plastic,place,defPart,markShell,root}=ctx;
     const GRN=0x3F8E5C;
     R=RIG.seqRunner(S,KEYS);
@@ -193,6 +194,7 @@ SCENES.garbage=Object.assign({
       {t:'压缩板把垃圾往里一推，压得扁扁的。',part:'press'},
     ];
 
+    ctx.linearize();
     return {update,chain,
       onStop(){R.stop();S.engineOn=false;for(const k of KEYS)S[k+'T']=0;},
       onStart(){},onDone(){S.engineOn=false;}};

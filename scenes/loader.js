@@ -42,6 +42,7 @@ SCENES.loader=Object.assign({
 
   build(ctx,_api){
     api=_api;
+    ctx=RIG.upgrade(ctx);
     const {THREE,V,mm,roundedBox,steel,dark,matte,plastic,place,defPart,markShell,root}=ctx;
     const YEL=0xF2B233,yel=()=>plastic(YEL);
     R=RIG.seqRunner(S,KEYS);
@@ -182,6 +183,7 @@ SCENES.loader=Object.assign({
       {t:'倒进卡车里，再回头铲下一斗！',part:'arm'},
     ];
 
+    ctx.linearize();
     return {update,chain,
       onStop(){R.stop();S.engineOn=false;for(const k of KEYS)S[k+'T']=0;},
       onStart(){},onDone(){S.engineOn=false;}};

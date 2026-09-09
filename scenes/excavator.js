@@ -40,7 +40,8 @@ function nextSeg(){X.seqI++;
 SCENES.excavator={
   id:'excavator',title:'挖掘机',subtitle:'拖一拖转圈 · 点零件听听',night:false,
   sky:'linear-gradient(180deg,#7FBFFF 0%,#A9D4FF 28%,#D6ECFB 48%,#D6ECFB 100%)',
-  envMap:['#9fd0ff','#e6f3ff','#c9a56a','#a07b46'],hemi:{sky:0xdfefff,ground:0xc9a56a},fog:{color:0xD6ECFB,near:24,far:52},
+  look:{srgb:true,hemi:.55,sun:.95,fill:.28,rim:.4,exposure:1.0,autoRotate:.10},
+  envMap:['#cfe0f0','#eef4fa','#b6bfc9','#8d97a2'],hemi:{sky:0xdfefff,ground:0xc9a56a},fog:{color:0xD6ECFB,near:24,far:52},
   fit:{w:11.5,h:6,ty:1.7,tyEx:2.6,rEx:1.25,cx:2.3},cameraStart:{theta:.95,phi:1.2},
   order:['bucket','stick','boom','cyl','cab','engine','pump','tracks','cw','start','body'],
   go:{on:'开始挖',off:'停下',stopSaid:'停下啦',stopHint:'再按一下，再挖一次！',done:'挖好啦！满满一斗土倒在旁边。',doneHintXray:'看，发动机和液压泵都在使劲。点「停下」再挖一次。',doneHint:'点「看里面」，看看力气是从哪儿来的。'},
@@ -75,7 +76,7 @@ SCENES.excavator={
   },
 
   build(ctx,_api){
-    api=_api;const {THREE,V,mm,roundedBox,capsule,tubeM,pathTube,chrome,steel,dark,matte,flat,plastic,glassMat,place,defPart,markShell,root,scene}=ctx;
+    api=_api;ctx=RIG.upgrade(ctx);const {THREE,V,mm,roundedBox,capsule,tubeM,pathTube,chrome,steel,dark,matte,flat,plastic,glassMat,place,defPart,markShell,root,scene}=ctx;
     const yel=()=>plastic(YEL);
     /* ---- 履带底盘 ---- */
     const tracks=new THREE.Group(),cleats=[],sprockets=[],TL=3.6,TR=.5;
@@ -260,6 +261,7 @@ SCENES.excavator={
       {t:'转个身，把土倒到旁边。',part:'body'},
     ];
     SCENES.excavator._dbg={X,startSeq,DIG,SWING,REST,DISPLAY,PIT,pitY,pileTop,boom,stick,bucket,upper,clods};
+    ctx.linearize();
     return {update,chain,onStop(){X.startOn=X.engineOn=X.pumpOn=false;X.seq=null;X.reps=0;},onStart(){},onDone(){}};
   }
 };

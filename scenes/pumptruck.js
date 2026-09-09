@@ -46,6 +46,7 @@ SCENES.pumptruck=Object.assign({
 
   build(ctx,_api){
     api=_api;
+    ctx=RIG.upgrade(ctx);
     const {THREE,V,mm,roundedBox,steel,dark,matte,plastic,place,defPart,markShell,root}=ctx;
     const YEL=0xF2B233,GRY=0xB8BEC6;
     R=RIG.seqRunner(S,KEYS);
@@ -196,6 +197,7 @@ SCENES.pumptruck=Object.assign({
       {t:'两根活塞你推我拉，混凝土顺着管子上去了！',part:'pump',inner:true},
     ];
 
+    ctx.linearize();
     return {update,chain,
       onStop(){R.stop();S.engineOn=false;for(const k of KEYS)S[k+'T']=0;},
       onStart(){},onDone(){S.engineOn=false;}};

@@ -12,7 +12,8 @@ SCENES.jet={
   id:'jet',title:'飞机',subtitle:'波音747 · 拖一拖转圈，点零件听听',night:true,
   sky:'linear-gradient(180deg,#6FB7FF 0%,#9ED0FF 30%,#CFE8FB 55%,#DCEEF8 100%)',
   nightFog:0x1d3358,
-  envMap:['#9fd0ff','#e8f4ff','#cfe0d0','#8fa87f'],hemi:{sky:0xdfefff,ground:0x9fb08c},fog:{color:0xDCEEF8,near:30,far:70},
+  look:{srgb:true,hemi:.55,sun:.95,fill:.28,rim:.4,exposure:1.0,autoRotate:.10},
+  envMap:['#cfe0f0','#eef4fa','#bcc6d0','#96a0aa'],hemi:{sky:0xdfefff,ground:0x9fb08c},fog:{color:0xDCEEF8,near:30,far:70},
   fit:{w:14.5,h:6.2,ty:1.5,tyEx:2.3,rEx:1.34},cameraStart:{theta:.95,phi:1.18},
   order:['engine','wing','flap','fuel','gear','tail','rudder','cabin','cargo','cockpit','door','start','body'],
   go:{on:'起飞',off:'停下',stopSaid:'停下啦',stopHint:'再按一下，再飞一次！',done:'飞起来啦！',
@@ -98,7 +99,7 @@ SCENES.jet={
 
   /* ---------- 飞机 ---------- */
   build(ctx,_api){
-    api=_api;const {THREE,V,mm,roundedBox,capsule,tubeM,pathTube,loft,stationsX,chrome,steel,dark,matte,flat,plastic,glassMat,paint,place,defPart,markShell,root}=ctx;
+    api=_api;ctx=RIG.upgrade(ctx);const {THREE,V,mm,roundedBox,capsule,tubeM,pathTube,loft,stationsX,chrome,steel,dark,matte,flat,plastic,glassMat,paint,place,defPart,markShell,root}=ctx;
     const WHITE=()=>plastic(0xF4F6F9),BLUE=()=>plastic(0x2F6FD0),RED=()=>plastic(0xE23B45);
 
     /* 机身外壳 */
@@ -366,6 +367,7 @@ SCENES.jet={
       {t:'起落架收进肚子里，飞得更快。',part:'gear',on(){P.gearT=1;P.altT=4.2;}},
       {t:'飞到云朵上面去啦！',part:'body',on(){P.pitchT=.10;P.altT=7.2;}},
     ];
+    ctx.linearize();
     return {update,chain,camY(){return P.alt*.60*(1-api.ee);},
       onStart(){},
       onStop(){P.startOn=P.engineOn=false;P.flapT=P.gearT=P.speedT=0;P.pitchT=0;P.altT=0;},

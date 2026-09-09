@@ -44,6 +44,7 @@ SCENES.dump=Object.assign({
 
   build(ctx,_api){
     api=_api;
+    ctx=RIG.upgrade(ctx);
     const {THREE,V,mm,roundedBox,steel,dark,matte,plastic,place,defPart,markShell,root}=ctx;
     const BLUE=0x3E7BC6;
     R=RIG.seqRunner(S,KEYS);
@@ -162,6 +163,7 @@ SCENES.dump=Object.assign({
       {t:'大油缸把车厢顶起来，石头哗啦滑下去！',part:'ram'},
     ];
 
+    ctx.linearize();
     return {update,chain,
       onStop(){R.stop();S.engineOn=false;S.tipT=S.driveT=S.gateT=0;S.loadT=1;},
       onStart(){},onDone(){S.engineOn=false;}};

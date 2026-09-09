@@ -53,6 +53,7 @@ SCENES.grader=Object.assign({
 
   build(ctx,_api){
     api=_api;
+    ctx=RIG.upgrade(ctx);
     const {THREE,V,mm,roundedBox,steel,dark,matte,plastic,place,defPart,markShell,root}=ctx;
     const YEL=0xF2B233,yel=()=>plastic(YEL);
     R=RIG.seqRunner(S,KEYS);
@@ -185,6 +186,7 @@ SCENES.grader=Object.assign({
       {t:'慢慢往前刮，土顺着刀面堆到路边。',part:'blade'},
     ];
 
+    ctx.linearize();
     return {update,chain,
       onStop(){R.stop();S.engineOn=false;for(const k of KEYS)S[k+'T']=0;},
       onStart(){},onDone(){S.engineOn=false;}};

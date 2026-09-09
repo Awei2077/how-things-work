@@ -52,6 +52,7 @@ SCENES.mixer=Object.assign({
 
   build(ctx,_api){
     api=_api;
+    ctx=RIG.upgrade(ctx);
     const {THREE,V,mm,roundedBox,tubeM,steel,chrome,dark,matte,plastic,place,defPart,markShell,root}=ctx;
     const RED=0xE0563A;
 
@@ -274,6 +275,7 @@ SCENES.mixer=Object.assign({
       {t:'筒子倒着转，混凝土顺着槽滑下去！',part:'drum'},
     ];
 
+    ctx.linearize();
     return {update,chain,
       onStop(){M.seq=null;M.reps=0;M.engineOn=false;M.driveT=M.chuteT=M.pourT=0;M.pileT=0;},
       onStart(){M.pileT=0;},onDone(){M.engineOn=false;}};

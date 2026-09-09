@@ -64,6 +64,7 @@ SCENES.crane=Object.assign({
 
   build(ctx,_api){
     api=_api;
+    ctx=RIG.upgrade(ctx);
     const {THREE,V,mm,roundedBox,tubeM,steel,chrome,dark,matte,plastic,place,defPart,markShell,root}=ctx;
     const YEL=0xF2B233,yel=()=>plastic(YEL);
 
@@ -256,6 +257,7 @@ SCENES.crane=Object.assign({
       {t:'吊起来，转个身，稳稳放到旁边。',part:'hook'},
     ];
 
+    ctx.linearize();
     return {update,chain,
       onStop(){C.seq=null;C.reps=0;C.engineOn=false;
         C.legT=C.pitchT=C.extT=C.hookT=C.slewT=C.liftedT=0;},

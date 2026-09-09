@@ -57,6 +57,7 @@ SCENES.towtruck=Object.assign({
 
   build(ctx,_api){
     api=_api;
+    ctx=RIG.upgrade(ctx);
     const {THREE,V,mm,roundedBox,steel,chrome,dark,matte,plastic,place,defPart,markShell,root}=ctx;
     const ORG=0xE8892E;
     R=RIG.seqRunner(S,KEYS);
@@ -198,6 +199,7 @@ SCENES.towtruck=Object.assign({
       {t:'抬起来，拖着走——后轮自己滚。',part:'cradle'},
     ];
 
+    ctx.linearize();
     return {update,chain,
       onStop(){R.stop();S.engineOn=false;for(const k of KEYS)S[k+'T']=0;},
       onStart(){},onDone(){S.engineOn=false;}};
