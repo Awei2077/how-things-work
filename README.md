@@ -4,7 +4,7 @@
 
 爸爸给三岁儿子做的，做着做着觉得别人家孩子应该也用得上，就开源了。
 
-**在线试玩 → https://awei2077.github.io/ta-zenme-dong/**
+**在线试玩 → https://awei2077.github.io/how-things-work/**
 
 ![汽车](历史版本/README-封面.jpg)
 
