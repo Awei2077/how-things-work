@@ -10,15 +10,11 @@ VOICES = {'yunxia': 'zh-CN-YunxiaNeural', 'xiaoyi': 'zh-CN-XiaoyiNeural'}
 SAMPLE = {'yunxia': '你好，我是云夏，我来给你讲这些东西是怎么动的。', 'xiaoyi': '你好，我是小依，我来给你讲这些东西是怎么动的。'}
 RATE = '-8%'
 
-lines = set()
-for m in re.finditer(r"defPart\('(\w+)',\{name:'([^']+)'(.*?)\},\[", SRC, re.S):
-    for t in re.findall(r"text2?:'([^']+)'", m.group(3)):
-        lines.add(f"{m.group(2)}。{t}")
-for m in re.finditer(r"\{t:'([^']+)',part:", SRC):
-    lines.add(m.group(1))
-for m in re.finditer(r"stopSaid:'([^']+)'", SRC):
-    lines.add(m.group(1))
-lines.update(['看里面', '合上', '拆开看', '装回去'])
+import sys
+sys.path.insert(0, str(ROOT / 'tools'))
+from check_voice import collect_lines
+lines = collect_lines(ROOT)
+
 lines = sorted(lines)
 ids = {t: hashlib.md5(t.encode('utf-8')).hexdigest()[:8] for t in lines}
 (OUT / 'lines.json').write_text(json.dumps(ids, ensure_ascii=False, indent=1), encoding='utf-8')
