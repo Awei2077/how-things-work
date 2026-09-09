@@ -2,6 +2,8 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
+<!-- 页面住在 pages/ 里，所有相对路径一律从站点根目录算 -->
+<base href="../">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>__TITLE__ · 它怎么动</title>
@@ -121,11 +123,11 @@ body.talking .tile.sel{border-color:var(--sun);background:#FFF7E6}
 </div>
 <div class="nogl" id="nogl">这个浏览器打不开 3D 画面，换 Safari 或 Chrome 试试。</div>
 <script src="lib/three.min.js"></script>
-<script src="lib3d.js"></script>
-<script src="rig.js"></script>
+<script src="js/lib3d.js"></script>
+<script src="js/rig.js"></script>
 <script src="scenes/__ID__.js"></script>
 <script>window.SCENE_ID='__ID__';</script>
 <script src="voice/lines.js"></script>
-<script src="app.js"></script>
+<script src="js/app.js"></script>
 </body>
 </html>

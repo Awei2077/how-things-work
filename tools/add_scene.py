@@ -14,14 +14,14 @@ def add(sid,name,group):
     if f'scenes/{sid}.js' not in s:
         s=re.sub(r'(<script src="scenes/car\.js[^"]*"></script>)',
                  f'<script src="scenes/{sid}.js"></script>\n\\1',s,count=1)
-    if f'href="{sid}.html"' not in s:
+    if f'href="pages/{sid}.html"' not in s:
         title=GROUPS[group]
         m2=re.search(r'(<h2>[^<]*<span[^>]*></span>'+title+r'[^<]*<small>[^<]*</small></h2>\s*\n\s*<div class="grid">)',s)
         if not m2:
             m2=re.search(r'(<span class="gi[^"]*"></span>'+title+r' <small>[^<]*</small></h2>\n    <div class="grid">)',s)
         if not m2:
             print(f'  找不到分组「{title}」，请先手动建组');return False
-        card=f'\n      <a class="card sky" href="{sid}.html" data-scene="{sid}"><canvas></canvas><div class="nm">{name}</div></a>'
+        card=f'\n      <a class="card sky" href="pages/{sid}.html" data-scene="{sid}"><canvas></canvas><div class="nm">{name}</div></a>'
         s=s[:m2.end(1)]+card+s[m2.end(1):]
     i.write_text(s,encoding='utf-8')
     print(f'  + {name} ({sid}) → {GROUPS[group]}')

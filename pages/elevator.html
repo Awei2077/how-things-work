@@ -2,9 +2,11 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
+<!-- 页面住在 pages/ 里，所有相对路径一律从站点根目录算 -->
+<base href="../">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>飞机 · 它怎么动</title>
+<title>电梯 · 它怎么动</title>
 <style>
 :root{--bg:#FFF6E5;--ink:#2B3A55;--ink-soft:#6B7A99;--card:#FFFFFF;--sky:#5BB8F5;--sky-deep:#2F8FD6;--sun:#FFB020;--sun-deep:#E08E00;--leaf:#4CC38A;--shadow:0 4px 0 rgba(43,58,85,.10),0 10px 24px rgba(43,58,85,.08)}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
@@ -94,14 +96,14 @@ body.talking .tile.sel{border-color:var(--sun);background:#FFF7E6}
 <canvas id="c"></canvas>
 <div class="top">
   <a class="rbtn" href="index.html" title="回首页"><svg viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10.5V20h13v-9.5"/><path d="M10 20v-5h4v5"/></svg></a>
-  <div class="title"><span id="ttl">飞机</span><small id="subtitle"></small></div>
+  <div class="title"><span id="ttl">电梯</span><small id="subtitle"></small></div>
   <button class="rbtn txt" id="voice" title="换声音">云夏</button>
   <button class="rbtn" id="mute" title="声音"><svg viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path class="wave" d="M16 9.5a3.5 3.5 0 0 1 0 5"/><path class="wave" d="M18.5 7a7 7 0 0 1 0 10"/></svg></button>
 </div>
 <div class="hint" id="hint">用手指拖一拖，会转圈</div>
 <div class="bottom">
   <div class="tray" id="tray"><div class="tray-in" id="trayIn"></div></div>
-  <div class="cap" id="cap"><div class="ce" id="ce"></div><div class="ct"><div class="cn" id="cn">飞机</div><div class="cd" id="cd"></div></div><button id="infoBtn" title="零件小百科">图文</button></div>
+  <div class="cap" id="cap"><div class="ce" id="ce"></div><div class="ct"><div class="cn" id="cn">电梯</div><div class="cd" id="cd"></div></div><button id="infoBtn" title="零件小百科">图文</button></div>
   <div class="ctrl">
     <button class="big go" id="go"><svg viewBox="0 0 24 24"><path d="M7 5v14l11-7z"/></svg><span id="gotxt">开起来</span></button>
     <button class="big xr" id="xr"><svg viewBox="0 0 24 24"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg><span id="xrtxt">看里面</span></button>
@@ -121,11 +123,11 @@ body.talking .tile.sel{border-color:var(--sun);background:#FFF7E6}
 </div>
 <div class="nogl" id="nogl">这个浏览器打不开 3D 画面，换 Safari 或 Chrome 试试。</div>
 <script src="lib/three.min.js?v=1788493942"></script>
-<script src="lib3d.js?v=1788697758"></script>
-<script src="rig.js?v=1788972001"></script>
-<script src="scenes/jet.js?v=1788972096"></script>
-<script>window.SCENE_ID='jet';</script>
-<script src="voice/lines.js?v=1788972182"></script>
-<script src="app.js?v=1788920649"></script>
+<script src="js/lib3d.js?v=1788697758"></script>
+<script src="js/rig.js?v=1788972001"></script>
+<script src="scenes/elevator.js?v=1788972096"></script>
+<script>window.SCENE_ID='elevator';</script>
+<script src="voice/lines.js?v=1788973381"></script>
+<script src="js/app.js?v=1788920649"></script>
 </body>
 </html>

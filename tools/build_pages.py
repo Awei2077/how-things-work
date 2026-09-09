@@ -13,6 +13,7 @@ def stamp(html):
         return f'src="{src}?v={int(f.stat().st_mtime)}"' if f.exists() else m.group(0)
     return re.sub(r'src="([^"]+\.js)(?:\?v=\d+)?"',sub,html)
 for sid,title in PAGES.items():
-    (ROOT/f'{sid}.html').write_text(stamp(TPL.replace('__TITLE__',title).replace('__ID__',sid)),encoding='utf-8')
-    print('wrote',sid+'.html')
+    (ROOT/'pages').mkdir(exist_ok=True)
+    (ROOT/'pages'/f'{sid}.html').write_text(stamp(TPL.replace('__TITLE__',title).replace('__ID__',sid)),encoding='utf-8')
+    print('wrote','pages/'+sid+'.html')
 idx=ROOT/'index.html';idx.write_text(stamp(idx.read_text(encoding='utf-8')),encoding='utf-8');print('stamped index.html')

@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>它怎么动 · 这一页搬家了</title>
+<style>
+body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;font-family:-apple-system,"PingFang SC","Noto Sans SC",sans-serif;background:linear-gradient(180deg,#bfe3ff,#eaf6ff);color:#2b3a55;text-align:center}
+.box{padding:34px 40px;background:#fff;border-radius:26px;box-shadow:0 12px 40px rgba(40,80,140,.16)}
+h1{font-size:22px;margin:0 0 10px}p{margin:0 0 20px;color:#5b6a85}
+a{display:inline-block;padding:11px 24px;border-radius:999px;background:#ffb547;color:#4a2d00;text-decoration:none;font-weight:700}
+</style>
+</head>
+<body>
+<div class="box"><h1 id="t">这一页搬家了，带你过去…</h1><p id="p">马上就好</p><a id="home" href="./">回首页</a></div>
+<script>
+// 物件页面都住进了 pages/，老链接（比如 /car.html）在这里自动跳到新位置
+const PAGES=['car','washer','elevator','excavator','jet','dozer','crane','mixer','roller','loader','dump','firetruck','garbage','towercrane','pumptruck','grader','piler','forklift','sweeper','towtruck'];
+function target(path){
+  const m=path.match(/^(.*\/)([^/]+)\.html$/);if(!m)return null;
+  let name=decodeURIComponent(m[2]);if(name==='汽车-3d')name='car';
+  if(!PAGES.includes(name)||m[1].endsWith('/pages/'))return null;
+  return m[1]+'pages/'+name+'.html';
+}
+window.__target=target;
+const to=target(location.pathname);
+if(to)location.replace(to+location.search+location.hash);
+else{
+  const p=location.pathname,i=p.indexOf('/pages/');
+  document.getElementById('home').href=i>=0?p.slice(0,i+1):p.replace(/[^/]*$/,'');
+  document.getElementById('t').textContent='找不到这一页';
+  document.getElementById('p').textContent='链接可能打错了，回首页再找找';
+}
+</script>
+</body>
+</html>

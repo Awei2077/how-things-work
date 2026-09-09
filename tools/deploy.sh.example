@@ -10,7 +10,9 @@ DEST=/var/www/your-site             # 服务器上的站点目录
 
 python3 tools/build_pages.py >/dev/null
 rm -rf dist && mkdir -p dist
-cp -R *.html app.js home.js lib3d.js rig.js lib scenes voice 历史版本 旧稿 dist/
+cp -R *.html pages js lib scenes voice docs dist/
+# 风格参考图只是给人看的，不用上线
+rm -rf dist/docs/参考
 find dist -name "._*" -o -name ".DS_Store" | xargs rm -f 2>/dev/null || true
 
 # 先解到 .new，再原子换过去，中途不会出现半个站点

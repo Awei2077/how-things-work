@@ -6,7 +6,7 @@
 
 **在线试玩 → https://awei2077.github.io/how-things-work/**
 
-![汽车](历史版本/README-封面.jpg)
+![汽车](docs/历史版本/README-封面.jpg)
 
 ---
 
@@ -74,16 +74,17 @@ python3 tools/build_pages.py    # 刷新配音对照表
 
 ```
 index.html            首页
-car.html …            五个物件的页面（由 tools/page-template.html 生成，别直接改）
-app.js                引擎：相机、点选、透视、拆开、讲解、配音、昼夜
-lib3d.js              建模工具库：放样、圆角盒、折角法线、材质、零件注册
-home.js               首页那几张会转的 3D 卡片
+404.html              老链接（比如 /car.html）自动跳到新位置
+pages/                20 个物件的页面（由 tools/page-template.html 生成，别直接改）
+js/app.js             引擎：相机、点选、透视、拆开、讲解、配音、昼夜
+js/lib3d.js           建模工具库：放样、圆角盒、折角法线、材质、零件注册
+js/rig.js             工程车共用件：履带、驾驶室、油缸、支腿、滚筒、工地布景
+js/home.js            首页那几张会转的 3D 卡片
 scenes/*.js           一个物件一个文件，全部造型和动作都在里面
+voice/                配音（云夏 / 小依）和「文案 → 文件名」对照表
 lib/three.min.js      three.js r128（MIT）
 tools/                构建、配音生成、部署
-历史版本/ 旧稿/         最早那几版，留着看演进
-版本对照.html          三个版本并排对照，每一格都是活的
-参考/                  美术风格参考图
+docs/                 历史版本、旧稿、版本对照页、美术风格参考图
 ```
 
 ---
