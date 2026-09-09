@@ -20,7 +20,7 @@ let R=null;
 SCENES.firetruck=Object.assign({
   id:'firetruck',title:'消防车',subtitle:'拖一拖转圈 · 点零件听听',night:true,
   fit:{w:12,h:8.5,ty:2.2,tyEx:3.0,rEx:1.25,cx:-.3},cameraStart:{theta:.95,phi:1.15},
-  order:['ladder','monitor','tank','pump','legs','hose','light','cab','engine','body','start'],
+  order:['ladder','monitor','tank','pump','legs','hose','light','cab','engine','box','body','start'],
   go:{on:'出动',off:'停下',stopSaid:'停下啦',stopHint:'再按一下，再出动一次！',
     done:'火灭啦！云梯收回来，可以回队里了。',doneHintXray:'看，水泵把水从水箱抽到高处。点「停下」再来一次。',
     doneHint:'点「看里面」，看看水是怎么被送上去的。'},
@@ -75,15 +75,28 @@ SCENES.firetruck=Object.assign({
       text:'消防员坐在里面，路上就把装备穿好。',
       more:'消防车的驾驶室坐得下六个人，座椅背后就挂着空气呼吸器，路上直接背上，到了就能冲进去。'},[tk.cab]);
 
+    /* 车厢：驾驶室后面一整段，两侧全是器材柜 */
+    const boxG=new THREE.Group();
+    {
+      const shell=roundedBox(4.5,1.15,2.15,.1,plastic(RED));shell.position.set(-1.1,1.32,0);boxG.add(shell);
+      const top=roundedBox(4.5,.1,2.0,.03,steel(0x9aa2ad));top.position.set(-1.1,1.94,0);boxG.add(top);
+      const stripe=roundedBox(4.54,.16,2.19,.03,plastic(0xE8E4DC));stripe.position.set(-1.1,.95,0);boxG.add(stripe);
+      markShell(boxG);place(boxG,V(0,0,0),V(0,2.3,0));
+    }
+    defPart('box',{name:'车厢',outside:true,
+      text:'驾驶室后面这一大段，装着水箱、水泵和全部装备。',
+      more:'消防车的车厢里塞得满满当当：水箱在中间，水泵在下面，两侧一格格的柜子放水带和工具。'},[boxG]);
     /* 器材柜 */
     const hoseG=new THREE.Group();
-    for(const s of [1,-1])for(const x of [-.4,-1.9]){
-      const box=roundedBox(1.3,.9,.12,.03,steel(0xB8BEC6));
-      box.position.set(x,1.15,s*1.0);hoseG.add(box);
+    for(const s of [1,-1])for(const x of [-.2,-1.9]){
+      const door=roundedBox(1.4,.9,.06,.03,steel(0xB8BEC6));
+      door.position.set(x,1.32,s*1.09);hoseG.add(door);
       for(let i=0;i<6;i++){
-        const line=roundedBox(1.24,.02,.04,.01,dark(0x8a929e));
-        line.position.set(x,.78+i*.14,s*1.06);hoseG.add(line);
+        const line=roundedBox(1.34,.02,.03,.01,dark(0x8a929e));
+        line.position.set(x,.98+i*.14,s*1.13);hoseG.add(line);
       }
+      const handle=roundedBox(.5,.05,.05,.02,steel(0x6b7280));
+      handle.position.set(x,1.72,s*1.13);hoseG.add(handle);
     }
     root.add(hoseG);
     defPart('hose',{name:'器材柜',outside:true,
@@ -105,7 +118,7 @@ SCENES.firetruck=Object.assign({
       action(){S.legUntil=now()+3000;}},[legsG]);
 
     /* 转台 + 云梯 */
-    const turn=new THREE.Group();turn.position.set(-1.4,1.35,0);root.add(turn);
+    const turn=new THREE.Group();turn.position.set(-1.4,2.02,0);root.add(turn);
     const ladPivot=new THREE.Group();ladPivot.position.set(0,.35,0);turn.add(ladPivot);
     const ladG=new THREE.Group();ladPivot.add(ladG);
     const rungs=[];
@@ -163,7 +176,7 @@ SCENES.firetruck=Object.assign({
       const t=roundedBox(2.4,.9,1.7,.1,plastic(0xB8BEC6));tankG.add(t);
       const gauge=mm(new THREE.CylinderGeometry(.12,.12,.06,14),matte(0x2F3A4A));
       gauge.rotation.x=Math.PI/2;gauge.position.set(-1.1,.2,.87);tankG.add(gauge);
-      place(tankG,V(-2.3,1.15,0),V(-3.2,1.9,0));
+      place(tankG,V(-2.3,1.30,0),V(-3.6,2.4,0));
     }
     defPart('tank',{name:'水箱',
       text:'车上自己带着好几吨水，到了就能喷。',
@@ -179,7 +192,7 @@ SCENES.firetruck=Object.assign({
         const port=mm(new THREE.CylinderGeometry(.13,.13,.4,12),matte(0xD8382C));
         port.rotation.z=Math.PI/2;port.position.set(s*.4,0,0);pumpG.add(port);
       }
-      place(pumpG,V(-.5,.95,0),V(-.8,1.7,1.6));
+      place(pumpG,V(-.5,.92,0),V(-.8,1.7,2.0));
     }
     defPart('pump',{name:'水泵',
       text:'水泵把水加压，才能喷到楼上去。',
@@ -227,7 +240,7 @@ SCENES.firetruck=Object.assign({
 
       for(const og of legs)og.set(S.leg*(1-ee));
       turn.rotation.y=-1.0*S.slew;
-      turn.position.set(-1.4,1.35+2.0*ee,0);
+      turn.position.set(-1.4,2.02+2.0*ee,0);
       ladPivot.rotation.z=1.05*S.pitch;
       for(let i=0;i<rungs.length;i++)rungs[i].position.x=i*2.55*S.ext;
 

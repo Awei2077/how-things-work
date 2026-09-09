@@ -231,18 +231,23 @@ function outrigger(ctx,o){
   return {group:g,set};
 }
 
-/* 滚筒：搅拌车的斜筒、压路机的碾子都用它。spin 子组绕自身轴转。 */
+/* 滚筒：搅拌车的斜筒轴沿车长（axis:'x'），压路机的碾子轴要横过来（axis:'z'）。
+   两种情况都绕自身轴转，spin.rotation.z 就是滚动方向。 */
 function drum(ctx,o){
   o=o||{};
   const {THREE,mm,roundedBox,steel,plastic,dark}=ctx;
   const R=o.r!=null?o.r:.9, L=o.len!=null?o.len:2.2, C=o.color!=null?o.color:0xE8E4DC,
-        RIB=o.ribs!=null?o.ribs:0;
+        RIB=o.ribs!=null?o.ribs:0, AX=o.axis||'x';
   const g=new THREE.Group(),spin=new THREE.Group();g.add(spin);
+  const lay=(m,off)=>{
+    if(AX==='z'){m.rotation.x=Math.PI/2;m.position.z=off;}
+    else{m.rotation.z=Math.PI/2;m.position.x=off;}
+    return m;};
   const body=mm(new THREE.CylinderGeometry(R,R,L,28),plastic(C));
-  body.rotation.z=Math.PI/2;spin.add(body);
+  lay(body,0);spin.add(body);
   for(const s of [1,-1]){
     const cap=mm(new THREE.CylinderGeometry(R*.99,R*.99,.06,28),steel(0x9aa2ad));
-    cap.rotation.z=Math.PI/2;cap.position.x=s*L/2;spin.add(cap);
+    lay(cap,s*L/2);spin.add(cap);
   }
   for(let i=0;i<RIB;i++){
     const a=i*Math.PI*2/RIB;

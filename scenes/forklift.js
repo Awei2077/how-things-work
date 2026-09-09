@@ -6,7 +6,7 @@ const S={fork:0,forkT:0,drive:0,driveT:0,tilt:0,tiltT:0,load:0,loadT:0,eng:0,
 let api=null;const now=()=>api.now();window.__FL=S;
 const KEYS=['fork','drive','tilt','load'];
 const JOB=[
-  {d:1200,to:{drive:1.5}},
+  {d:1200,to:{drive:1.05}},
   {d:400 ,to:{load:1}},
   {d:600 ,to:{tilt:1}},
   {d:1300,to:{fork:1}},
@@ -21,7 +21,7 @@ let R=null;
 SCENES.forklift=Object.assign({
   id:'forklift',title:'叉车',subtitle:'拖一拖转圈 · 点零件听听',night:false,
   fit:{w:7,h:5.6,ty:1.4,tyEx:2.4,rEx:1.3,cx:.3},cameraStart:{theta:.95,phi:1.18},
-  order:['fork','mast','cyl','cw','wheels','seat','engine','start'],
+  order:['fork','mast','cyl','cw','wheels','seat','frame','engine','start'],
   go:{on:'开始叉',off:'停下',stopSaid:'停下啦',stopHint:'再按一下，再叉一次！',
     done:'叉好啦！货物稳稳举起来了。',doneHintXray:'看，门架里的链条把货叉往上拉。点「停下」再叉一次。',
     doneHint:'点「看里面」，看看货叉是怎么升上去的。'},
@@ -59,6 +59,9 @@ SCENES.forklift=Object.assign({
       }
       markShell(bodyG);place(bodyG,V(0,0,0),V(0,2.2,0));
     }
+    defPart('frame',{name:'车身',outside:true,
+      text:'橙色的小身体，头顶还有个护顶架。',
+      more:'叉车个头小，但很沉。发动机、油箱、液压泵全塞在这个小身体里，前面还要挂一副门架。'},[bodyG]);
     const seatG=new THREE.Group();
     {
       const s2=roundedBox(.5,.12,.5,.04,matte(0x2b3038));seatG.add(s2);
@@ -150,7 +153,7 @@ SCENES.forklift=Object.assign({
       for(const sz of [-.4,0,.4]){
         const sl=roundedBox(1.1,.09,.16,.02,matte(0xA07B4A));sl.position.set(0,-.1,sz);palletG.add(sl);
       }
-      const box=roundedBox(.9,.7,.9,.05,matte(0xC9A227));box.position.y=.41;palletG.add(box);
+      const box=roundedBox(.8,.58,.8,.05,matte(0xC9A227));box.position.y=.35;palletG.add(box);
       palletG.userData.noHit=true;root.add(palletG);
     }
 
@@ -185,7 +188,7 @@ SCENES.forklift=Object.assign({
       forkG.position.y=1.5*S.fork;
       const wp=new THREE.Vector3();forkG.getWorldPosition(wp);
       if(S.load>.4){palletG.position.set(wp.x+.55,wp.y+.12,wp.z);palletG.rotation.z=.13*S.tilt;}
-      else{palletG.position.set(2.4,.14,0);palletG.rotation.z=0;}
+      else{palletG.position.set(1.95,.14,0);palletG.rotation.z=0;}
       palletG.visible=ee<.3;
       eng.spin(dt,S.eng);
       sb.pulse(drv,t);

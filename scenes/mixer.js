@@ -70,35 +70,59 @@ SCENES.mixer=Object.assign({
       text:'后面是双排轮子，压得住这么重的车。',
       more:'越重的车轮子越多。后面每边两个轮子并排，把重量分开压在地上，轮胎才不会爆。'},[wheelsG]);
 
-    /* 搅拌筒（斜着架在车尾） */
+    /* 搅拌筒：中间粗、车尾那端收成小口，整根往车尾方向翘起来。
+       出料口在车尾上方，进料斗和卸料槽都挂在那儿——真车就是这个布置。 */
     const drumPivot=new THREE.Group();
-    drumPivot.position.set(-1.1,1.55,0);drumPivot.rotation.z=.22;root.add(drumPivot);
-    const dr=RIG.drum(ctx,{r:1.02,len:2.9,color:0xF0EBE2,ribs:0});
-    drumPivot.add(dr.group);
+    drumPivot.position.set(-.85,1.62,0);drumPivot.rotation.z=-.19;root.add(drumPivot);
+    const drumSpin=new THREE.Group();drumPivot.add(drumSpin);
+    const DRUM_REAR=-2.25;
     {
-      const nose=mm(new THREE.ConeGeometry(1.02,.9,26),plastic(0xF0EBE2));
-      nose.rotation.z=-Math.PI/2;nose.position.x=-1.85;dr.spin.add(nose);
-      const tail=mm(new THREE.ConeGeometry(1.02,1.1,26),plastic(0xF0EBE2));
-      tail.rotation.z=Math.PI/2;tail.position.x=1.99;dr.spin.add(tail);
-      // 筒外面那两条螺旋筋，转起来一眼就看得出方向
-      for(const s of [0,1]){
-        for(let i=0;i<26;i++){
-          const u=i/25,a=u*Math.PI*2.4+s*Math.PI;
-          const seg=roundedBox(.26,.09,.11,.03,steel(0x9aa2ad));
-          seg.position.set(-1.6+u*3.3,Math.cos(a)*1.05,Math.sin(a)*1.05);
-          seg.rotation.x=-a;dr.spin.add(seg);
-        }
+      const prof=[[-2.25,.42],[-2.05,.60],[-1.65,.86],[-1.15,1.02],[-.2,1.06],
+                  [.75,1.02],[1.35,.86],[1.85,.55],[2.15,.16]]
+        .map(([x,r])=>new THREE.Vector2(r,x));
+      const body=mm(new THREE.LatheGeometry(prof,30),plastic(0xF0EBE2));
+      body.rotation.z=-Math.PI/2;drumSpin.add(body);
+      const lip=mm(new THREE.TorusGeometry(.44,.06,10,22),steel(0x9aa2ad));
+      lip.rotation.y=Math.PI/2;lip.position.x=DRUM_REAR;drumSpin.add(lip);
+      // 外面两条螺旋筋，转起来一眼看得出方向
+      for(const s2 of [0,1])for(let i=0;i<24;i++){
+        const u=i/23,a=u*Math.PI*2.2+s2*Math.PI;
+        const x=-1.9+u*3.6;
+        const r=1.06*Math.max(.25,1-Math.pow(Math.abs(x-.1)/2.3,2.2))+.02;
+        const seg=roundedBox(.24,.09,.11,.03,steel(0x9aa2ad));
+        seg.position.set(x,Math.cos(a)*r,Math.sin(a)*r);
+        seg.rotation.x=-a;drumSpin.add(seg);
       }
-      for(const x of [-1.2,1.2]){
-        const band=mm(new THREE.TorusGeometry(1.06,.06,10,30),steel(0x6b7280));
-        band.rotation.y=Math.PI/2;band.position.x=x;dr.spin.add(band);
+      for(const [x,r] of [[-1.2,1.04],[.7,1.04]]){
+        const band=mm(new THREE.TorusGeometry(r,.06,10,30),steel(0x6b7280));
+        band.rotation.y=Math.PI/2;band.position.x=x;drumSpin.add(band);
       }
-      markShell(dr.group);
+      // 托轮：筒就架在这两组滚轮上
+      for(const x of [-1.5,.55])for(const sz of [1,-1]){
+        const rl=mm(new THREE.CylinderGeometry(.2,.2,.24,14),steel(0x6b7280));
+        rl.rotation.x=Math.PI/2;rl.position.set(x,-1.0,sz*.6);drumPivot.add(rl);
+      }
+      const cradle=roundedBox(3.6,.22,1.7,.05,dark(0x3a4150));
+      cradle.position.set(-.4,-1.22,0);drumPivot.add(cradle);
+      markShell(drumSpin);
+    }
+    const dr={group:drumSpin,spin:drumSpin,R:1.05};
+    /* 车尾支架：真车的进料斗和卸料槽都装在这个门形架上，架子骑在大梁尾部 */
+    const rearFrame=new THREE.Group();
+    {
+      for(const sz of [1,-1]){
+        const leg=roundedBox(.16,1.5,.16,.04,dark(0x3a4150));
+        leg.position.set(0,.75,sz*.78);rearFrame.add(leg);
+      }
+      const top=roundedBox(.16,.16,1.7,.04,dark(0x3a4150));top.position.set(0,1.5,0);rearFrame.add(top);
+      const brace=roundedBox(1.1,.14,.14,.03,dark(0x3a4150));
+      brace.position.set(.5,1.42,0);rearFrame.add(brace);
+      rearFrame.position.set(-3.15,.72,0);root.add(rearFrame);
     }
     defPart('drum',{name:'搅拌筒',outside:true,
       text:'大筒子一路上都在慢慢转，混凝土才不会硬掉。',
       more:'混凝土是水泥、沙子、石头加水拌出来的。一停下来它就开始变硬，所以从搅拌站到工地，筒子必须一直转。',
-      action(){M.spinUntil=now()+4000;}},[dr.group]);
+      action(){M.spinUntil=now()+4000;}},[drumSpin]);
 
     /* 筒内螺旋叶片（看里面才看得到） */
     const bladeG=new THREE.Group();
@@ -107,11 +131,11 @@ SCENES.mixer=Object.assign({
         for(let i=0;i<22;i++){
           const u=i/21,a=u*Math.PI*2.4+s*Math.PI;
           const v=roundedBox(.3,.62,.06,.02,matte(0x8a929e));
-          v.position.set(-1.5+u*3.1,Math.cos(a)*.62,Math.sin(a)*.62);
+          v.position.set(-1.6+u*3.3,Math.cos(a)*.60,Math.sin(a)*.60);
           v.rotation.x=-a;bladeG.add(v);
         }
       }
-      dr.spin.add(bladeG);
+      drumSpin.add(bladeG);
     }
     defPart('blade',{name:'螺旋叶片',inner:true,
       text:'筒里面是两条大螺旋，像麻花一样。',
@@ -121,11 +145,13 @@ SCENES.mixer=Object.assign({
     /* 进料斗 */
     const hopG=new THREE.Group();
     {
-      const h=mm(new THREE.CylinderGeometry(.62,.26,.7,16,1,true),steel(0x8a929e));
-      h.position.set(0,.3,0);hopG.add(h);
-      const lip=mm(new THREE.TorusGeometry(.62,.05,8,20),steel(0x6b7280));
-      lip.position.y=.65;hopG.add(lip);
-      hopG.position.set(-2.75,2.55,0);root.add(hopG);
+      const h=mm(new THREE.CylinderGeometry(.5,.22,.55,16,1,true),steel(0x8a929e));
+      h.position.set(0,.28,0);hopG.add(h);
+      const lip=mm(new THREE.TorusGeometry(.5,.045,8,20),steel(0x6b7280));
+      lip.position.y=.55;hopG.add(lip);
+      const neck=mm(new THREE.CylinderGeometry(.2,.2,.45,12),steel(0x6b7280));
+      neck.position.set(.16,-.18,0);neck.rotation.z=.5;hopG.add(neck);
+      hopG.position.set(-3.32,2.32,0);root.add(hopG);
     }
     defPart('hopper',{name:'进料斗',
       text:'混凝土从这个大漏斗倒进筒里。',
@@ -134,11 +160,12 @@ SCENES.mixer=Object.assign({
     /* 卸料槽 */
     const chuteG=new THREE.Group();
     {
-      const ch=mm(new THREE.CylinderGeometry(.3,.34,1.6,14,1,true,0,Math.PI),steel(0x9aa2ad));
-      ch.rotation.z=Math.PI/2;ch.rotation.x=Math.PI;ch.position.x=-.8;chuteG.add(ch);
-      const ring=mm(new THREE.TorusGeometry(.32,.04,8,16),steel(0x6b7280));
+      const ch=mm(new THREE.CylinderGeometry(.26,.3,1.5,14,1,true,0,Math.PI),steel(0x9aa2ad));
+      ch.rotation.z=Math.PI/2;ch.rotation.x=Math.PI;ch.position.x=-.75;chuteG.add(ch);
+      const ring=mm(new THREE.TorusGeometry(.28,.04,8,16),steel(0x6b7280));
       ring.rotation.y=Math.PI/2;chuteG.add(ring);
-      chuteG.position.set(-3.5,1.9,0);root.add(chuteG);
+      const hang=roundedBox(.1,.5,.1,.03,steel(0x6b7280));hang.position.set(-.05,.28,0);chuteG.add(hang);
+      chuteG.position.set(-3.22,1.62,0);root.add(chuteG);
     }
     defPart('chute',{name:'卸料槽',outside:true,
       text:'放下这条槽，混凝土顺着滑下去。',
@@ -156,11 +183,11 @@ SCENES.mixer=Object.assign({
     /* 水箱 */
     const waterG=new THREE.Group();
     {
-      const t=mm(new THREE.CylinderGeometry(.3,.3,1.1,16),plastic(0x5B9BD5));
-      t.rotation.x=Math.PI/2;waterG.add(t);
-      for(const s of [1,-1]){const c=mm(new THREE.CylinderGeometry(.31,.31,.05,16),steel(0x9aa2ad));
-        c.rotation.x=Math.PI/2;c.position.z=s*.56;waterG.add(c);}
-      waterG.position.set(-3.2,1.15,0);root.add(waterG);
+      const t=mm(new THREE.CylinderGeometry(.26,.26,.95,16),plastic(0x5B9BD5));
+      t.rotation.z=Math.PI/2;waterG.add(t);
+      for(const s of [1,-1]){const c=mm(new THREE.CylinderGeometry(.27,.27,.05,16),steel(0x9aa2ad));
+        c.rotation.z=Math.PI/2;c.position.x=s*.48;waterG.add(c);}
+      waterG.position.set(-1.9,.92,1.02);root.add(waterG);
     }
     defPart('water',{name:'水箱',
       text:'车上带着一箱水，干完活要马上把筒冲干净。',
@@ -215,20 +242,20 @@ SCENES.mixer=Object.assign({
       root.position.x=M.drive;
       tk.advance(M.drive-(update._px||0));update._px=M.drive;
       // 卸料时反转，一眼看得出方向变了
-      dr.spin.rotation.x+=dt*M.spin*(M.pour>.4?-2.6:1.5)*(1-ee);
-      drumPivot.position.y=1.55+2.2*ee;
+      drumSpin.rotation.x+=dt*M.spin*(M.pour>.4?-2.6:1.5)*(1-ee);
+      drumPivot.position.y=1.62+2.2*ee;
       chuteG.rotation.z=-M.chute*.62;
       chuteG.rotation.y=M.chute*.22;
-      chuteG.position.set(-3.5-.15*M.chute+(-1.6*ee),1.9-.35*M.chute+1.2*ee,0);
-      hopG.position.set(-2.75-1.2*ee,2.55+1.6*ee,0);
-      waterG.position.set(-3.2-.6*ee,1.15+.2*ee,1.7*ee);
+      chuteG.position.set(-3.22-.12*M.chute+(-1.6*ee),1.62-.30*M.chute+1.2*ee,0);
+      hopG.position.set(-3.32-1.2*ee,2.32+1.6*ee,0);
+      waterG.position.set(-1.9-.6*ee,.92+.2*ee,1.02+1.4*ee);
       bladeG.visible=api.S.xr>.35||ee>.35;
 
       const pouring=M.pour>.15&&M.chute>.5;
       if(pouring)M.pileT=Math.min(1,M.pileT+dt*.42);
       for(const d of drops){
         const u=((d.userData.u+t/900)%1);
-        const cx=-4.35,cy=1.42;
+        const cx=-4.05,cy=1.28;
         d.position.set(cx+u*.5,cy-u*1.35,0);
         d.visible=pouring&&ee<.2;
         d.scale.setScalar(pouring?(.8+.4*Math.sin(u*6)):0);

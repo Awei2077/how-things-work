@@ -93,13 +93,16 @@ SCENES.crane=Object.assign({
       action(){C.legUntil=now()+3200;}},[legsG]);
 
     /* 回转台 */
-    const slewG=new THREE.Group();slewG.position.set(-.4,1.28,0);root.add(slewG);
+    const slewG=new THREE.Group();slewG.position.set(-.6,1.30,0);root.add(slewG);
     const turn=new THREE.Group();slewG.add(turn);
     const ringG=new THREE.Group();
     {
-      const ring=mm(new THREE.CylinderGeometry(1.0,1.1,.24,28),steel(0x6b7280));ringG.add(ring);
-      for(let i=0;i<20;i++){const t=roundedBox(.1,.26,.12,.02,steel(0x8a929e));
-        const a=i*Math.PI*2/20;t.position.set(Math.cos(a)*1.06,0,Math.sin(a)*1.06);t.rotation.y=-a;ringG.add(t);}
+      const ring=mm(new THREE.CylinderGeometry(1.15,1.3,.42,30),steel(0x6b7280));
+      ring.position.y=-.2;ringG.add(ring);
+      for(let i=0;i<24;i++){const t=roundedBox(.1,.4,.13,.02,steel(0x8a929e));
+        const a=i*Math.PI*2/24;t.position.set(Math.cos(a)*1.24,-.2,Math.sin(a)*1.24);t.rotation.y=-a;ringG.add(t);}
+      const skirt=mm(new THREE.CylinderGeometry(1.3,1.3,.16,30),dark(0x3a4150));
+      skirt.position.y=-.44;ringG.add(skirt);
       slewG.add(ringG);
     }
     defPart('slew',{name:'回转台',
@@ -109,18 +112,21 @@ SCENES.crane=Object.assign({
     /* 上车：操作室 + 配重 + 卷扬机 */
     const house=new THREE.Group();turn.add(house);
     {
-      const deck=roundedBox(2.6,.4,1.9,.08,yel());deck.position.set(0,.3,0);house.add(deck);
+      const deck=roundedBox(3.8,.5,2.1,.1,yel());deck.position.set(-.2,.28,0);house.add(deck);
+      const side=roundedBox(3.8,.34,.1,.03,dark(0x3a4150));
+      for(const sz of [1,-1]){const sd=side.clone();sd.position.set(-.2,.6,sz*1.02);house.add(sd);}
+      const nose=roundedBox(.7,.7,1.4,.1,yel());nose.position.set(-1.9,.6,0);house.add(nose);
       markShell(house);place(house,V(0,0,0),V(0,2.2,0));
     }
     const opCab=RIG.cab(ctx,{w:1.0,h:1.25,d:1.1,color:0x3a4150});
-    opCab.group.position.set(.55,.5,.85);turn.add(opCab.group);
+    opCab.group.position.set(-.55,.53,.72);turn.add(opCab.group);
     markShell(opCab.group);
 
     const cwG=new THREE.Group();
     {
-      const blk=roundedBox(.8,1.0,1.9,.08,dark(0x3a4150));cwG.add(blk);
+      const blk=roundedBox(.85,1.1,2.0,.08,dark(0x3a4150));cwG.add(blk);
       const stripe=roundedBox(.06,.22,1.8,.02,yel());stripe.position.x=-.42;cwG.add(stripe);
-      cwG.position.set(1.55,.85,0);turn.add(cwG);
+      cwG.position.set(1.35,1.05,0);turn.add(cwG);
     }
     defPart('cw',{name:'配重',
       text:'屁股上压着一大块铁，前面吊得再重也翘不起来。',
@@ -133,7 +139,7 @@ SCENES.crane=Object.assign({
       for(const s of [1,-1]){const fl=mm(new THREE.CylinderGeometry(.34,.34,.05,20),steel(0x9aa2ad));
         fl.rotation.x=Math.PI/2;fl.position.z=s*.36;winchG.add(fl);}
       const mot=roundedBox(.36,.3,.3,.04,dark(0x2f3a4a));mot.position.set(-.4,0,0);winchG.add(mot);
-      winchG.position.set(.75,.95,0);turn.add(winchG);
+      winchG.position.set(.5,1.0,0);turn.add(winchG);
     }
     defPart('winch',{name:'卷扬机',
       text:'钢丝绳一圈一圈缠在这个大轮子上。',
@@ -141,8 +147,8 @@ SCENES.crane=Object.assign({
       action(){C.hookUntil=now()+3200;}},[winchG]);
 
     /* 伸缩臂 */
-    const boomPivot=new THREE.Group();boomPivot.position.set(-.1,.75,0);turn.add(boomPivot);
-    const bm=RIG.boom(ctx,{sections:3,len:2.3,w:.5,h:.58,taper:.82,color:YEL});
+    const boomPivot=new THREE.Group();boomPivot.position.set(-1.55,1.05,0);turn.add(boomPivot);
+    const bm=RIG.boom(ctx,{sections:3,len:2.9,w:.56,h:.64,taper:.84,color:YEL});
     bm.group.rotation.y=Math.PI;
     boomPivot.add(bm.group);
     defPart('boom',{name:'伸缩臂',outside:true,
@@ -222,11 +228,11 @@ SCENES.crane=Object.assign({
       bm.set(C.ext);
 
       // 钩子挂在臂尖正下方，钢丝绳把两点连起来
-      const reach=2.3+2*2.3*.86*C.ext;
+      const reach=2.9+2*2.9*.86*C.ext;
       const ang=.16+.80*C.pitch, sa=-.55*C.slew;
-      const tipL=new THREE.Vector3(-reach*Math.cos(ang),.75+reach*Math.sin(ang),0);
-      _t.set(tipL.x*Math.cos(sa)-0,tipL.y,-tipL.x*Math.sin(sa));
-      _t.x+=-.4;_t.y+=1.28;
+      const tipL=new THREE.Vector3(-1.55-reach*Math.cos(ang),1.05+reach*Math.sin(ang),0);
+      _t.set(tipL.x*Math.cos(sa),tipL.y,-tipL.x*Math.sin(sa));
+      _t.x+=-.6;_t.y+=1.30;
       const drop=.5+3.4*C.hook;
       hookG.position.set(_t.x,Math.max(.5,_t.y-drop),_t.z);
       hookG.position.x+=1.2*ee;hookG.position.y+=1.6*ee;

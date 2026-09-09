@@ -20,7 +20,7 @@ let R=null;
 SCENES.towtruck=Object.assign({
   id:'towtruck',title:'清障车',subtitle:'拖一拖转圈 · 点零件听听',night:false,
   fit:{w:13,h:5.6,ty:1.5,tyEx:2.6,rEx:1.3,cx:-1.2},cameraStart:{theta:.95,phi:1.2},
-  order:['boom','cradle','winch','light','wheels','cab','engine','body','start'],
+  order:['boom','cradle','winch','light','wheels','cab','deck','engine','body','start'],
   go:{on:'开始拖',off:'停下',stopSaid:'停下啦',stopHint:'再按一下，再拖一次！',
     done:'拖走啦！坏车被稳稳吊着送去修。',doneHintXray:'看，卷扬机在收钢丝绳。点「停下」再拖一次。',
     doneHint:'点「看里面」，看看托臂是怎么把车抬起来的。'},
@@ -75,8 +75,25 @@ SCENES.towtruck=Object.assign({
       text:'后面双排轮子，拖着一整辆车也稳。',
       more:'拖着车走的时候，被拖车的重量有一大半压在清障车后桥上，所以后轮要双排。'},[wheelsG]);
 
+    /* 车厢平台：托臂和卷扬机都装在它上面 */
+    const deckG=new THREE.Group();
+    {
+      const deck=roundedBox(3.4,.75,2.0,.08,plastic(ORG));deck.position.set(-1.3,1.12,0);deckG.add(deck);
+      const plate=roundedBox(3.4,.08,1.9,.03,steel(0x9aa2ad));deck.position.y=1.12;
+      plate.position.set(-1.3,1.53,0);deckG.add(plate);
+      for(const sz of [1,-1]){
+        const rail=roundedBox(3.3,.09,.09,.03,steel(0x8a929e));
+        rail.position.set(-1.3,1.72,sz*.9);deckG.add(rail);
+      }
+      const tool=roundedBox(.9,.5,.16,.04,steel(0xB8BEC6));tool.position.set(-.5,1.15,1.03);deckG.add(tool);
+      markShell(deckG);place(deckG,V(0,0,0),V(0,2.2,0));
+    }
+    defPart('deck',{name:'平台',outside:true,
+      text:'驾驶室后面的平台，托臂和卷扬机都装在上面。',
+      more:'平台上还放着三角警示牌、地锚和几条拖车带，路边作业要用的东西都在这儿。'},[deckG]);
+
     /* 托臂 */
-    const boomPivot=new THREE.Group();boomPivot.position.set(-2.2,1.15,0);root.add(boomPivot);
+    const boomPivot=new THREE.Group();boomPivot.position.set(-2.5,1.62,0);root.add(boomPivot);
     const boomG=new THREE.Group();boomPivot.add(boomG);
     {
       const b1=roundedBox(1.8,.34,.5,.06,plastic(ORG));b1.position.set(-.9,0,0);boomG.add(b1);
@@ -114,7 +131,7 @@ SCENES.towtruck=Object.assign({
         fl.rotation.x=Math.PI/2;fl.position.z=s*.29;winchG.add(fl);}
       const hk=mm(new THREE.TorusGeometry(.1,.03,8,14,Math.PI*1.5),chrome());
       hk.position.set(-.5,-.2,0);winchG.add(hk);
-      place(winchG,V(-1.5,1.5,0),V(-1.8,2.4,1.4));
+      place(winchG,V(-1.5,1.85,0),V(-1.8,2.6,1.8));
     }
     defPart('winch',{name:'卷扬机',
       text:'钢丝绳把开不动的车拉上来。',
@@ -162,7 +179,7 @@ SCENES.towtruck=Object.assign({
       root.position.x=S.drive;tk.advance(moved);
 
       boomPivot.rotation.z=.10*S.lift;
-      boomPivot.position.set(-2.2-1.6*ee,1.15+1.4*ee,0);
+      boomPivot.position.set(-2.5-1.6*ee,1.62+1.4*ee,0);
       boomG.userData.ext.position.x=-2.2-.9*S.boom;
       cradleG.position.set(-2.9-.9*S.boom,-.15-.35*(1-S.lift),0);
       lightG.position.set(2.3,2.32+1.4*ee,0);

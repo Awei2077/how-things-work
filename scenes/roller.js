@@ -82,15 +82,15 @@ SCENES.roller=Object.assign({
 
     /* 前滚筒 */
     const drumG=new THREE.Group();
-    const dr=RIG.drum(ctx,{r:.68,len:1.9,color:0xB8BEC6});
+    const dr=RIG.drum(ctx,{r:.58,len:1.95,color:0xB8BEC6,axis:'z'});
     drumG.add(dr.group);
     {
-      const yoke=roundedBox(.25,.9,2.2,.05,yel());yoke.position.set(.35,.35,0);drumG.add(yoke);
-      for(const s of [1,-1]){
-        const scr=roundedBox(.1,.3,1.8,.02,dark(0x3a4150));
-        scr.position.set(-.78,.36,0);drumG.add(scr);
+      for(const sz of [1,-1]){
+        const arm=roundedBox(.9,.24,.14,.04,yel());arm.position.set(.3,.34,sz*1.12);drumG.add(arm);
       }
-      drumG.position.set(1.85,.68,0);root.add(drumG);
+      const yoke=roundedBox(.26,.7,2.4,.05,yel());yoke.position.set(.66,.32,0);drumG.add(yoke);
+      const scr=roundedBox(.09,.26,1.85,.02,dark(0x3a4150));scr.position.set(-.66,.24,0);drumG.add(scr);
+      drumG.position.set(1.55,.58,0);root.add(drumG);
     }
     defPart('drum',{name:'钢滚筒',outside:true,
       text:'前面这个大铁滚子，滚过去路就平了。',
@@ -101,10 +101,10 @@ SCENES.roller=Object.assign({
     const vibG=new THREE.Group();
     {
       const shaft=mm(new THREE.CylinderGeometry(.07,.07,1.7,12),steel(0x6b7280));
-      shaft.rotation.z=Math.PI/2;vibG.add(shaft);
-      for(const x of [-.55,0,.55]){
-        const w=mm(new THREE.CylinderGeometry(.3,.3,.18,16,1,false,0,Math.PI),matte(0xC0392B));
-        w.rotation.z=Math.PI/2;w.position.set(x,0,0);vibG.add(w);
+      shaft.rotation.x=Math.PI/2;vibG.add(shaft);
+      for(const z of [-.55,0,.55]){
+        const w=mm(new THREE.CylinderGeometry(.26,.26,.16,16,1,false,0,Math.PI),matte(0xC0392B));
+        w.rotation.x=Math.PI/2;w.position.set(0,0,z);vibG.add(w);
       }
       dr.spin.add(vibG);
     }
@@ -210,7 +210,7 @@ SCENES.roller=Object.assign({
       // 震动：整台车轻微上下抖
       const amp=R.vib*(1-ee)*.022;
       const j=Math.sin(t/28)*amp;
-      drumG.position.set(1.85+2.4*ee,.68+j+.6*ee,0);
+      drumG.position.set(1.55+2.4*ee,.58+j+.6*ee,0);
       frame.position.y=frame.userData.home.y+frame.userData.explode.y*ee+j*.55;
       vibG.rotation.z+=dt*R.vib*40;
       waterG.position.set(.1-.4*ee,1.55+1.4*ee,0);

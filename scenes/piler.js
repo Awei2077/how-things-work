@@ -24,7 +24,7 @@ let R=null;
 SCENES.piler=Object.assign({
   id:'piler',title:'打桩机',subtitle:'拖一拖转圈 · 点零件听听',night:false,
   fit:{w:11,h:12,ty:4.2,tyEx:5.0,rEx:1.25,cx:.4},cameraStart:{theta:.95,phi:1.1},
-  order:['hammer','pile','mast','winch','tracks','cab','engine','start'],
+  order:['hammer','pile','mast','winch','tracks','cab','body','engine','start'],
   go:{on:'开始打',off:'停下',stopSaid:'停下啦',stopHint:'再按一下，再打一根！',
     done:'打好啦！桩牢牢扎进地里。',doneHintXray:'看，锤子被提起来又松开，靠自己的重量砸下去。点「停下」再打一根。',
     doneHint:'点「看里面」，看看锤子是怎么被提上去的。'},
@@ -78,6 +78,9 @@ SCENES.piler=Object.assign({
       const cw=roundedBox(.6,1.0,1.9,.08,dark(0x3a4150));cw.position.set(-2.7,1.5,0);bodyG.add(cw);
       markShell(bodyG);place(bodyG,V(0,0,0),V(-1.4,2.4,0));
     }
+    defPart('body',{name:'机身',outside:true,
+      text:'黄色的身体，后面压着配重。',
+      more:'机身里装着发动机和卷扬机。屁股上那块铁是配重，前面的塔架和锤子那么重，没有它整台车会往前栽。'},[bodyG]);
     const cabRig=RIG.cab(ctx,{w:1.1,h:1.3,d:1.2,color:0x3a4150});
     markShell(cabRig.group);place(cabRig.group,V(-.55,1.0,1.1),V(-1.0,2.6,1.8));
     defPart('cab',{name:'驾驶室',outside:true,

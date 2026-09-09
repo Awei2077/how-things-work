@@ -5,14 +5,15 @@ const S={lift:0,liftT:0,tilt:0,tiltT:0,drive:0,driveT:0,load:0,loadT:0,eng:0,
   engineOn:false,engUntil:0,armUntil:0,bkUntil:0};
 let api=null;const now=()=>api.now();window.__LD=S;
 const KEYS=['lift','tilt','drive','load'];
+/* tilt：正 = 铲斗往回翻兜住土，负 = 往前倒出来 */
 const SCOOP=[
-  {d:1400,to:{drive:1.6,tilt:0}},
-  {d:700 ,to:{load:1,tilt:.55}},
-  {d:1300,to:{lift:1}},
-  {d:1200,to:{drive:0}},
-  {d:900 ,to:{tilt:1}},
-  {d:500 ,to:{load:0}},
-  {d:1000,to:{tilt:.2,lift:0}},
+  {d:1300,to:{drive:1.6,tilt:0,lift:0}},
+  {d:600 ,to:{load:1,tilt:.8}},
+  {d:1200,to:{lift:1}},
+  {d:1100,to:{drive:-.3}},
+  {d:900 ,to:{tilt:-.9}},
+  {d:400 ,to:{load:0}},
+  {d:900 ,to:{tilt:.15,lift:0,drive:0}},
 ];
 let R=null;
 
@@ -33,9 +34,9 @@ SCENES.loader=Object.assign({
     const {THREE,scene,mm,flat}=ctx;
     const s=RIG.site(ctx,{kind:'dirt',seed:333,fenceZ:9});
     const pile=mm(new THREE.SphereGeometry(1.3,16,12),flat(0xA8825A));
-    pile.scale.set(1.3,.55,1.2);pile.position.set(4.6,0,0);pile.castShadow=true;scene.add(pile);
+    pile.scale.set(1.05,.92,1.0);pile.position.set(4.6,-.15,0);pile.castShadow=true;scene.add(pile);
     return {occluders:s.occluders,update(){
-      pile.scale.set(1.3*(1-S.load*.18),.55*(1-S.load*.22),1.2*(1-S.load*.18));
+      pile.scale.set(1.05*(1-S.load*.14),.92*(1-S.load*.2),1.0*(1-S.load*.14));
     }};
   },
 
@@ -79,7 +80,7 @@ SCENES.loader=Object.assign({
       more:'四个轮子都会使劲，这叫四驱。轮胎花纹很深，抓得住松土，冲进土堆时才不打滑。'},[wheelsG]);
 
     /* 大臂 */
-    const armPivot=new THREE.Group();armPivot.position.set(-.2,1.55,0);root.add(armPivot);
+    const armPivot=new THREE.Group();armPivot.position.set(-.2,1.15,0);root.add(armPivot);
     const armG=new THREE.Group();armPivot.add(armG);
     for(const s of [1,-1]){
       const a=roundedBox(2.5,.24,.22,.05,yel());a.position.set(1.25,0,s*.72);armG.add(a);
@@ -154,14 +155,17 @@ SCENES.loader=Object.assign({
       root.position.x=S.drive;
       for(const w of ws)w.spin.rotation.z-=moved/w.R;
 
-      armPivot.rotation.z=.62*S.lift;
-      bkPivot.rotation.z=-.62*S.lift-1.0*S.tilt+.35;
+      /* 铲斗角度要在大臂的坐标系里算：bkPivot 是 armPivot 的子节点，两个旋转会叠加。
+         目标是让铲斗的绝对角度停在 -.02（刃口刚好贴地），所以要先把大臂的角度补回来。 */
+      const armRot=-.38+1.00*S.lift;
+      armPivot.rotation.z=armRot;
+      bkPivot.rotation.z=(-.02-armRot)+1.30*S.tilt;
       dirt.visible=S.load>.05&&ee<.3;
       dirt.scale.set(.9*S.load,.42*S.load,1.0*S.load);
 
       for(const {r,s} of rams){
-        _a.set(-.35+.9*ee,1.05+1.4*ee,s*.62);
-        _b.set(.95+.9*ee,1.05+.95*S.lift+1.4*ee,s*.62);
+        _a.set(-.50+.9*ee,1.02+1.4*ee,s*.96);
+        _b.set(1.05+.9*ee,1.15+1.35*S.lift+1.4*ee,s*.96);
         r.aim(_a,_b);
       }
       eng.spin(dt,S.eng);

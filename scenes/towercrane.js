@@ -19,7 +19,7 @@ let R=null;
 
 SCENES.towercrane=Object.assign({
   id:'towercrane',title:'塔吊',subtitle:'拖一拖转圈 · 点零件听听',night:false,
-  fit:{w:20,h:16,ty:6.0,tyEx:7.0,rEx:1.2,cx:0},cameraStart:{theta:.95,phi:1.05},
+  fit:{w:27,h:19,ty:6.4,tyEx:7.4,rEx:1.15,cx:1.5},cameraStart:{theta:.95,phi:1.05},
   order:['jib','trolley','hook','mast','cw','cab','base','start'],
   go:{on:'开始吊',off:'停下',stopSaid:'停下啦',stopHint:'再按一下，再吊一次！',
     done:'吊好啦！材料稳稳送到楼上。',doneHintXray:'看，小车沿着长臂来回跑。点「停下」再吊一次。',

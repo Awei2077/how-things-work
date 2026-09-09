@@ -117,9 +117,9 @@ SCENES.grader=Object.assign({
       sh.absarc(CX,CY,R2,-A,A,false);sh.absarc(CX,CY,R2-TH,A,-A,true);sh.closePath();
       const W=3.0;
       const plate=mm(new THREE.ExtrudeGeometry(sh,{depth:W,bevelEnabled:false,curveSegments:16}),yel());
-      plate.rotation.y=Math.PI/2;plate.position.set(0,-.95,-W/2);bladeG.add(plate);
-      const edge=roundedBox(.2,.1,W,.03,steel(0x6b7280));
-      edge.rotation.y=Math.PI/2;edge.position.set(0,-1.42,0);bladeG.add(edge);
+      plate.position.set(0,-.95,-W/2);bladeG.add(plate);
+      const edge=roundedBox(.22,.1,W,.03,steel(0x6b7280));
+      edge.position.set(-.05,-1.40,0);bladeG.add(edge);
       const hang=roundedBox(.16,.6,.16,.03,steel(0x8a929e));hang.position.set(0,-.5,0);bladeG.add(hang);
     }
     defPart('blade',{name:'刀片',outside:true,
