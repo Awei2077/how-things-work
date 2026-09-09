@@ -128,5 +128,241 @@ function wheel(ctx,o){
   return {group:g,spin,R,width:W};
 }
 
-return {crawler,cab,ram,wheel};
+/* 卡车底盘：大梁 + 驾驶室 + 前脸 + 若干车轴。
+   搅拌车、自卸车、泵车、消防车、垃圾车、洒水车、清障车都从这儿起步。
+   axles 给每根轴的 x 位置，dual:true 的轴是双胎。 */
+function truck(ctx,o){
+  o=o||{};
+  const {THREE,mm,roundedBox,dark,steel,matte,glassMat,plastic}=ctx;
+  const COL=o.color!=null?o.color:0xE04A3A, CAB=o.cabX!=null?o.cabX:2.1,
+        R=o.wheelR!=null?o.wheelR:.52, HZ=o.halfZ!=null?o.halfZ:.95,
+        FL=o.frameFrom!=null?o.frameFrom:-3.4, FR=o.frameTo!=null?o.frameTo:3.0,
+        axles=o.axles||[{x:2.05},{x:-1.85,dual:true},{x:-2.75,dual:true}];
+  const g=new THREE.Group(),wheels=[];
+  const body=()=>plastic(COL);
+  /* 大梁 */
+  for(const s of [1,-1]){
+    const rail=roundedBox(FR-FL,.22,.16,.03,dark(0x3a4150));
+    rail.position.set((FL+FR)/2,.62,s*.52);g.add(rail);
+  }
+  for(let i=0;i<5;i++){
+    const cr=roundedBox(.14,.16,1.0,.03,dark(0x3a4150));
+    cr.position.set(FL+.5+i*((FR-FL-1)/4),.62,0);g.add(cr);
+  }
+  /* 驾驶室 */
+  const cabG=new THREE.Group();
+  {
+    const shell=roundedBox(1.7,1.5,2.0,.14,body());shell.position.set(0,1.5,0);cabG.add(shell);
+    const wind=mm(new THREE.BoxGeometry(.06,.78,1.68),glassMat());
+    wind.position.set(.83,1.86,0);wind.userData.glass=true;wind.castShadow=false;cabG.add(wind);
+    for(const s of [1,-1]){
+      const side=mm(new THREE.BoxGeometry(.9,.6,.05),glassMat());
+      side.position.set(.1,1.86,s*.99);side.userData.glass=true;side.castShadow=false;cabG.add(side);
+      const handle=roundedBox(.2,.06,.05,.02,steel(0x9aa2ad));handle.position.set(-.2,1.44,s*1.0);cabG.add(handle);
+      const mir=roundedBox(.08,.3,.1,.03,dark(0x262b35));mir.position.set(.72,1.9,s*1.12);cabG.add(mir);
+    }
+    const grille=roundedBox(.14,.5,1.5,.04,dark(0x262b35));grille.position.set(.9,1.0,0);cabG.add(grille);
+    for(const s of [1,-1]){
+      const lamp=mm(new THREE.CylinderGeometry(.13,.13,.1,16),matte(0xFFF3D0));
+      lamp.rotation.z=Math.PI/2;lamp.position.set(.9,1.05,s*.62);cabG.add(lamp);
+    }
+    const bump=roundedBox(.22,.28,2.1,.05,dark(0x3a4150));bump.position.set(.92,.5,0);cabG.add(bump);
+    const step=roundedBox(.5,.06,.3,.02,dark(0x3a4150));step.position.set(-.2,.42,0);cabG.add(step);
+    cabG.position.set(CAB,0,0);g.add(cabG);
+  }
+  /* 车轴 */
+  for(const a of axles){
+    for(const s of [1,-1]){
+      const offs=a.dual?[HZ-.17,HZ+.17]:[HZ];
+      for(const oz of offs){
+        const w=wheel(ctx,{r:R,width:.34,tread:20});
+        w.group.position.set(a.x,R,s*oz);g.add(w.group);wheels.push(w);
+      }
+    }
+    const ax=mm(new THREE.CylinderGeometry(.1,.1,HZ*2,12),steel(0x6b7280));
+    ax.rotation.x=Math.PI/2;ax.position.set(a.x,R,0);g.add(ax);
+  }
+  function advance(dist){for(const w of wheels)w.spin.rotation.z-=dist/w.R;}
+  /* 自己挂到 root：place() 只记位置不挂节点，靠场景记得 defPart(tk.group) 太容易漏 */
+  ctx.root.add(g);
+  return {group:g,cab:cabG,wheels,advance,wheelR:R};
+}
+
+/* 伸缩臂：一节套一节，set(k) 里 k=0 全缩、k=1 全伸。 */
+function boom(ctx,o){
+  o=o||{};
+  const {THREE,roundedBox,plastic,steel}=ctx;
+  const N=o.sections!=null?o.sections:3, L=o.len!=null?o.len:3.4,
+        W=o.w!=null?o.w:.46, H=o.h!=null?o.h:.52, TAPER=o.taper!=null?o.taper:.8,
+        C=o.color!=null?o.color:0xF2B233;
+  const g=new THREE.Group(),segs=[];
+  for(let i=0;i<N;i++){
+    const k=Math.pow(TAPER,i);
+    const seg=roundedBox(L,H*k,W*k,.04,i?steel(0x9aa2ad):plastic(C));
+    seg.position.set(L/2,0,0);
+    const holder=new THREE.Group();holder.add(seg);g.add(holder);segs.push(holder);
+  }
+  function set(k){
+    for(let i=0;i<N;i++)segs[i].position.x=i*L*.86*k;
+  }
+  set(0);
+  return {group:g,set,segs,segLen:L,reach:k=>L+(N-1)*L*.86*k};
+}
+
+/* 支腿：往外伸 + 垫脚落地。set(k)，k=0 收起、k=1 撑开。 */
+function outrigger(ctx,o){
+  o=o||{};
+  const {THREE,roundedBox,dark,steel,plastic}=ctx;
+  const C=o.color!=null?o.color:0xF2B233, OUT=o.out!=null?o.out:.9, DROP=o.drop!=null?o.drop:.8;
+  const g=new THREE.Group();
+  const beam=roundedBox(.34,.24,1.1,.04,dark(0x3a4150));g.add(beam);
+  const leg=new THREE.Group();
+  const post=roundedBox(.2,.9,.2,.03,steel(0x9aa2ad));leg.add(post);
+  const pad=roundedBox(.5,.1,.5,.03,plastic(C));leg.add(pad);
+  g.add(leg);
+  /* 收起时腿要缩到梁下面一点点，不能一直戳在地里；撑开时垫脚正好落到 DROP 深度 */
+  function set(k){
+    const h=.14+(DROP-.14)*k;
+    beam.scale.z=1+k*.9;leg.position.z=OUT*k;
+    post.scale.y=h/.9;post.position.y=-h/2;
+    pad.position.y=-h-.05;
+  }
+  set(0);
+  return {group:g,set};
+}
+
+/* 滚筒：搅拌车的斜筒、压路机的碾子都用它。spin 子组绕自身轴转。 */
+function drum(ctx,o){
+  o=o||{};
+  const {THREE,mm,roundedBox,steel,plastic,dark}=ctx;
+  const R=o.r!=null?o.r:.9, L=o.len!=null?o.len:2.2, C=o.color!=null?o.color:0xE8E4DC,
+        RIB=o.ribs!=null?o.ribs:0;
+  const g=new THREE.Group(),spin=new THREE.Group();g.add(spin);
+  const body=mm(new THREE.CylinderGeometry(R,R,L,28),plastic(C));
+  body.rotation.z=Math.PI/2;spin.add(body);
+  for(const s of [1,-1]){
+    const cap=mm(new THREE.CylinderGeometry(R*.99,R*.99,.06,28),steel(0x9aa2ad));
+    cap.rotation.z=Math.PI/2;cap.position.x=s*L/2;spin.add(cap);
+  }
+  for(let i=0;i<RIB;i++){
+    const a=i*Math.PI*2/RIB;
+    const rib=roundedBox(L*.9,.07,.1,.02,dark(0x8a929e));
+    rib.position.set(0,Math.cos(a)*(R+.02),Math.sin(a)*(R+.02));
+    rib.rotation.x=-a;spin.add(rib);
+  }
+  return {group:g,spin,R,L};
+}
+
+/* 工地/街道环境：地面 + 锥桶 + 围挡 + 远树。
+   返回 {occluders, add(obj)}，直接塞进场景的 env() 里用。
+   kind: 'dirt' 工地土地 / 'road' 沥青路面。 */
+function site(ctx,o){
+  o=o||{};
+  const {THREE,scene,mm,roundedBox,flat,matte,canvasTex,rngFactory}=ctx;
+  const kind=o.kind||'dirt', seed=o.seed!=null?o.seed:2026;
+  const base=kind==='road'?[104,112,124]:[186,150,100];
+  const tex=canvasTex(512,512,(g,w,h)=>{
+    const c=`${base[0]},${base[1]},${base[2]}`;
+    const gr=g.createRadialGradient(w/2,h/2,w*.05,w/2,h/2,w/2);
+    gr.addColorStop(0,`rgba(${base[0]+10},${base[1]+10},${base[2]+10},1)`);
+    gr.addColorStop(.75,`rgba(${c},1)`);gr.addColorStop(1,`rgba(${c},0)`);
+    g.fillStyle=gr;g.fillRect(0,0,w,h);
+    g.fillStyle='rgba(90,70,45,.12)';
+    for(let i=0;i<380;i++){g.beginPath();g.arc(Math.random()*w,Math.random()*h,1+Math.random()*3,0,6.28);g.fill();}});
+  const ground=new THREE.Mesh(new THREE.CircleGeometry(36,64),
+    new THREE.MeshStandardMaterial({map:tex,transparent:true,roughness:1}));
+  ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;scene.add(ground);
+  const rnd=rngFactory(seed),occ=[];
+  const reg=g=>{g.updateWorldMatrix(true,true);
+    const sp=new THREE.Box3().setFromObject(g).getBoundingSphere(new THREE.Sphere());
+    g.userData.r=sp.radius;g.userData.cy=sp.center.y-g.position.y;g.userData.s0=g.scale.x;g.userData.k=1;occ.push(g);};
+  for(const [x,z] of (o.cones||[[-5.4,3.0],[-7.6,1.8],[-7.4,-2.6],[5.8,3.2]])){
+    const g=new THREE.Group();
+    const c=mm(new THREE.ConeGeometry(.22,.7,12),matte(0xF25C2A));c.position.y=.35;g.add(c);
+    const b=roundedBox(.5,.05,.5,.02,matte(0xF25C2A));b.position.y=.025;g.add(b);
+    const st=mm(new THREE.CylinderGeometry(.16,.19,.08,12),matte(0xffffff));st.position.y=.42;g.add(st);
+    g.position.set(x,0,z);scene.add(g);reg(g);}
+  if(o.fence!==false)for(let i=0;i<6;i++){
+    const g=new THREE.Group(),x=-6+i*2.5;
+    for(const dx of [-1.1,1.1]){const p2=mm(new THREE.CylinderGeometry(.06,.06,1.3,8),flat(0x8B5A2B));p2.position.set(dx,.65,0);g.add(p2);}
+    for(const y of [.55,1.05]){const r=roundedBox(2.4,.1,.06,.02,flat(0xE8D48A));r.position.set(0,y,0);g.add(r);}
+    g.position.set(x,0,o.fenceZ!=null?o.fenceZ:8.5);scene.add(g);reg(g);}
+  const GREENS=[0x5DBB63,0x4CA85A,0x7CC576],trunkM=flat(0x8B5A2B);
+  for(let i=0;i<10;i++){
+    const a=(i/10)*Math.PI*2+rnd()*.4,R=15+rnd()*8,g=new THREE.Group();
+    const t=new THREE.Mesh(new THREE.CylinderGeometry(.1,.14,1,7),trunkM);t.position.y=.5;g.add(t);
+    for(const [dx,dy,dz,k] of [[0,1.5,0,1],[.4,1.8,.2,.7],[-.35,1.85,-.25,.6]]){
+      const sph=new THREE.Mesh(new THREE.SphereGeometry(.8*k,9,7),flat(GREENS[i%3]));sph.position.set(dx,dy,dz);g.add(sph);}
+    g.traverse(m=>{if(m.isMesh)m.castShadow=true;});
+    g.scale.setScalar(1+rnd()*.6);g.position.set(Math.cos(a)*R,0,Math.sin(a)*R);scene.add(g);reg(g);}
+  return {occluders:occ,ground};
+}
+
+/* 各场景公用的天空/雾/环境反射配置，省得每个文件抄一遍 */
+const SKY={
+  site:{sky:'linear-gradient(180deg,#7FBFFF 0%,#A9D4FF 28%,#D6ECFB 48%,#D6ECFB 100%)',
+    envMap:['#9fd0ff','#e6f3ff','#c9a56a','#a07b46'],hemi:{sky:0xdfefff,ground:0xc9a56a},
+    fog:{color:0xD6ECFB,near:24,far:52}},
+  street:{sky:'linear-gradient(180deg,#7FBFFF 0%,#A9D4FF 28%,#D6ECFB 48%,#D6ECFB 100%)',
+    envMap:['#9fd0ff','#e6f3ff','#b6bfc9','#8d97a2'],hemi:{sky:0xdfefff,ground:0x9aa4b2},
+    fog:{color:0xD6ECFB,near:26,far:56}},
+};
+
+/* 动作序列机：每台车的「开起来」都是一串定时的状态过渡，逻辑完全一样。
+   seq 是 [{d:毫秒, to:{键:目标值}}]，状态写在 st 上，键 k 对应 st[k] 和 st[k+'T']。 */
+function seqRunner(st,keys){
+  let seq=null,i=0,tt=0,reps=0,from=null,to=null;
+  function snap(){const o={};for(const k of keys)o[k]=st[k+'T'];return o;}
+  function next(){
+    i++;
+    if(i>=seq.length){if(reps>1){reps--;i=0;}else{seq=null;reps=0;return;}}
+    from=snap();to=Object.assign({},from,seq[i].to);tt=0;
+  }
+  return {
+    start(s,r){if(seq)return;seq=s;reps=r||1;i=-1;next();},
+    stop(){seq=null;reps=0;},
+    get running(){return !!seq;},
+    tick(dt){
+      if(!seq)return;
+      tt+=dt*1000;
+      const k=Math.min(1,tt/seq[i].d),e=k*k*(3-2*k);
+      for(const key in to)st[key+'T']=from[key]+(to[key]-from[key])*e;
+      if(k>=1)next();
+    },
+    /* 空闲时把所有目标值拉回 0；驱动中或有定时演示时不动 */
+    idle(dt,rate){if(seq)return;for(const k of keys)st[k+'T']+=(0-st[k+'T'])*Math.min(1,dt*(rate||1.3));},
+    /* 目标值 → 当前值的缓动 */
+    ease(dt,rate){for(const k of keys)st[k]+=(st[k+'T']-st[k])*Math.min(1,dt*(rate||3));},
+  };
+}
+
+/* 绿色启动按钮，每台车都有一个 */
+function startBtn(ctx,x,y,z){
+  const {THREE,mm,dark}=ctx;
+  const g=new THREE.Group();
+  const base=mm(new THREE.CylinderGeometry(.15,.15,.07,18),dark(0x262b35));g.add(base);
+  const btn=mm(new THREE.CylinderGeometry(.11,.11,.09,18),
+    new THREE.MeshStandardMaterial({color:0x35C46B,emissive:0x35C46B,emissiveIntensity:.35,roughness:.4}));
+  btn.position.y=.06;btn.userData.keepEm=true;g.add(btn);
+  g.position.set(x,y,z);
+  return {group:g,pulse(on,t){btn.material.emissiveIntensity=.35+(on?.5:0)*(Math.sin(t/220)*.5+.5);}};
+}
+
+/* 标准柴油机：缸体 + 红缸盖 + 风扇。fan 会转。 */
+function engine(ctx,o){
+  o=o||{};
+  const {THREE,mm,roundedBox,dark,steel,matte}=ctx;
+  const S=o.scale!=null?o.scale:1;
+  const g=new THREE.Group();
+  const blk=roundedBox(1.0*S,.6*S,.8*S,.06,dark(0x2f3a4a));g.add(blk);
+  const head=roundedBox(.9*S,.18*S,.7*S,.04,matte(0xC0392B));head.position.y=.38*S;g.add(head);
+  for(let i=0;i<4;i++){
+    const p=mm(new THREE.CylinderGeometry(.06*S,.06*S,.2*S,10),steel(0x9aa2ad));
+    p.position.set((-.3+i*.2)*S,.55*S,0);g.add(p);}
+  const fan=mm(new THREE.CylinderGeometry(.24*S,.24*S,.06*S,16),steel(0x6b7280));
+  fan.position.set(.58*S,0,0);fan.rotation.z=Math.PI/2;g.add(fan);
+  return {group:g,fan,spin(dt,k){fan.rotation.x+=dt*k*20;}};
+}
+
+return {crawler,cab,ram,wheel,truck,boom,outrigger,drum,site,SKY,seqRunner,startBtn,engine};
 })();
