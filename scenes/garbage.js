@@ -1,16 +1,18 @@
 /* 场景：垃圾车。+x 车头，车尾有举桶的机械臂和压缩板。 */
 window.SCENES=window.SCENES||{};
 (function(){
-const S={arm:0,armT:0,dump:0,dumpT:0,press:0,pressT:0,full:0,fullT:0,eng:0,
-  engineOn:false,engUntil:0,armUntil:0,pressUntil:0};
+const S={arm:0,armT:0,dump:0,dumpT:0,press:0,pressT:0,full:0,fullT:0,lid:0,lidT:0,eng:0,
+  engineOn:false,engUntil:0,armUntil:0,pressUntil:0,lidUntil:0};
 let api=null;const now=()=>api.now();window.__GB=S;
-const KEYS=['arm','dump','press','full'];
+const KEYS=['arm','dump','press','full','lid'];
 const ROUND=[
+  {d:600 ,to:{lid:1}},
   {d:1300,to:{arm:1}},
   {d:900 ,to:{dump:1}},
   {d:700 ,to:{full:.5}},
   {d:800 ,to:{dump:0}},
   {d:1100,to:{arm:0}},
+  {d:600 ,to:{lid:0}},
   {d:1500,to:{press:1,full:1}},
   {d:900 ,to:{press:0}},
 ];
@@ -18,15 +20,15 @@ let R=null;
 
 SCENES.garbage=Object.assign({
   id:'garbage',title:'垃圾车',subtitle:'拖一拖转圈 · 点零件听听',night:false,
-  fit:{w:10.5,h:5.6,ty:1.6,tyEx:2.6,rEx:1.28,cx:-.6},cameraStart:{theta:2.15,phi:1.2},
-  order:['arm','bin','hopper','press','body','wheels','cab','engine','chassis','start'],
+  fit:{w:10.5,h:5.6,ty:1.6,tyEx:2.6,rEx:1.28,cx:-.6},cameraStart:{theta:-.95,phi:1.2},
+  order:['arm','bin','lid','hopper','press','body','wheels','cab','engine','chassis','start'],
   go:{on:'开始收',off:'停下',stopSaid:'停下啦',stopHint:'再按一下，再收一桶！',
     done:'收好啦！垃圾被压得紧紧的。',doneHintXray:'看，压缩板把垃圾一次次推到里面。点「停下」再收一次。',
     doneHint:'点「看里面」，看看垃圾进去以后怎么被压小的。'},
   intro:{icon:'arm',name:'垃圾车',text:'点一点垃圾车的零件，听听它叫什么。按「开始收」看它怎么把垃圾桶举起来倒空。'},
   poster:{title:'垃圾车能装下多少垃圾',sub:'因为它会一边收一边压',
-    summary:'举起桶 → 倒进料斗 → 压缩板推进去压实，能装下五倍的垃圾！',angle:{theta:2.15,phi:1.15},
-    keys:['arm','hopper','press','body','engine']},
+    summary:'举起桶 → 倒进料斗 → 压缩板推进去压实，能装下五倍的垃圾！',angle:{theta:-.95,phi:1.15},
+    keys:['arm','lid','hopper','press','body']},
 
   env(ctx,_api){
     api=_api;
@@ -58,41 +60,57 @@ SCENES.garbage=Object.assign({
     /* 车厢 */
     const bodyG=new THREE.Group();
     {
-      const box=roundedBox(4.2,2.0,2.1,.1,plastic(GRN));box.position.set(-1.1,1.9,0);bodyG.add(box);
+      const box=roundedBox(3.5,2.0,2.1,.1,plastic(GRN));box.position.set(-.75,1.9,0);bodyG.add(box);
       for(let i=0;i<4;i++){
         const rib=roundedBox(.1,2.0,2.16,.03,plastic(0x357A4E));
-        rib.position.set(-2.6+i*1.0,1.9,0);bodyG.add(rib);
+        rib.position.set(-2.05+i*.9,1.9,0);bodyG.add(rib);
       }
-      const top=roundedBox(4.2,.12,2.0,.04,steel(0x9aa2ad));top.position.set(-1.1,2.95,0);bodyG.add(top);
+      const top=roundedBox(3.5,.12,2.0,.04,steel(0x9aa2ad));top.position.set(-.75,2.95,0);bodyG.add(top);
       markShell(bodyG);place(bodyG,V(0,0,0),V(0,2.4,0));
     }
     defPart('body',{name:'车厢',outside:true,
       text:'密封的大箱子，垃圾水漏不出来。',
       more:'车厢是完全密封的，底下还有个小水箱接垃圾渗出来的水，不会一路滴到马路上。'},[bodyG]);
 
-    /* 后面的料斗 */
+    /* 车尾的料斗：一个敞口的槽，比车厢矮一截，顶上盖着尾门 */
     const hopG=new THREE.Group();
     {
-      const back=roundedBox(.14,1.9,2.1,.05,plastic(0x357A4E));back.position.set(-3.5,1.6,0);hopG.add(back);
+      const back=roundedBox(.14,1.2,2.1,.05,plastic(0x357A4E));back.position.set(-3.55,1.4,0);hopG.add(back);
       for(const s of [1,-1]){
-        const side=roundedBox(1.0,1.5,.12,.04,plastic(0x357A4E));side.position.set(-3.0,1.5,s*1.0);hopG.add(side);
+        const side=roundedBox(1.1,1.2,.12,.04,plastic(0x357A4E));side.position.set(-3.05,1.4,s*1.0);hopG.add(side);
       }
-      const floor=roundedBox(1.0,.12,2.1,.04,steel(0x8a929e));floor.position.set(-3.0,.82,0);hopG.add(floor);
-      const lip=roundedBox(1.0,.1,2.1,.03,steel(0x6b7280));lip.position.set(-3.0,2.36,0);hopG.add(lip);
+      const floor=roundedBox(1.1,.12,2.1,.04,steel(0x8a929e));floor.position.set(-3.05,.82,0);hopG.add(floor);
+      const lip=roundedBox(.2,.08,2.16,.03,steel(0x6b7280));lip.position.set(-3.55,2.02,0);hopG.add(lip);
       root.add(hopG);
     }
     defPart('hopper',{name:'料斗',outside:true,
       text:'垃圾先倒进车尾这个大斗里。',
       more:'料斗是敞口的，垃圾倒进来先堆在这儿，然后被压缩板一次次推进车厢深处。'},[hopG]);
 
+    /* 尾门：盖在料斗上，举桶之前先掀开。铰链在靠车厢那一边，挂在 hopG 下面，拆开时跟着料斗走 */
+    const lidPivot=new THREE.Group();lidPivot.position.set(-2.5,2.08,0);hopG.add(lidPivot);
+    const lidG=new THREE.Group();lidPivot.add(lidG);
+    {
+      const plate=roundedBox(1.15,.1,2.16,.04,plastic(GRN));plate.position.set(-.575,0,0);lidG.add(plate);
+      for(const s of [1,-1]){
+        const hinge=mm(new THREE.CylinderGeometry(.06,.06,.25,10),steel(0x6b7280));
+        hinge.rotation.x=Math.PI/2;hinge.position.set(0,0,s*1.0);lidG.add(hinge);
+      }
+      const handle=roundedBox(.12,.06,.6,.02,steel(0x9aa2ad));handle.position.set(-1.0,.08,0);lidG.add(handle);
+    }
+    defPart('lid',{name:'尾门',outside:true,
+      text:'举桶之前尾门先掀开，垃圾才倒得进去。',
+      more:'尾门平时关得紧紧的，臭味和垃圾水都跑不出来。收垃圾时先掀开，桶翻过来倒进料斗，倒完马上关上。',
+      action(){S.lidUntil=now()+3200;}},[lidG]);
+
     /* 压缩板 */
     const pressG=new THREE.Group();
     {
-      const plate=roundedBox(.18,1.5,1.9,.05,steel(0xB8BEC6));pressG.add(plate);
+      const plate=roundedBox(.18,1.1,1.9,.05,steel(0xB8BEC6));pressG.add(plate);
       for(const s of [1,-1]){
-        const rail=roundedBox(.12,.12,.12,.03,steel(0x6b7280));rail.position.set(.2,.6,s*.85);pressG.add(rail);
+        const rail=roundedBox(.12,.12,.12,.03,steel(0x6b7280));rail.position.set(.2,.45,s*.85);pressG.add(rail);
       }
-      pressG.position.set(-3.3,1.6,0);root.add(pressG);
+      pressG.position.set(-3.35,1.45,0);root.add(pressG);
     }
     defPart('press',{name:'压缩板',outside:true,
       text:'一块大铁板把垃圾往里推，压得扁扁的。',
@@ -153,9 +171,10 @@ SCENES.garbage=Object.assign({
     function update(dt){
       const t=now(),drv=api.S.drive,ee=api.ee;
       R.tick(dt);
-      if(t<S.armUntil){S.armT=.5+.5*Math.sin(t/700);S.dumpT=S.armT>.7?1:0;}
+      if(t<S.armUntil){S.armT=.5+.5*Math.sin(t/700);S.dumpT=S.armT>.7?1:0;S.lidT=1;}
+      if(t<S.lidUntil)S.lidT=.5+.5*Math.sin(t/700);
       if(t<S.pressUntil)S.pressT=.5+.5*Math.sin(t/600);
-      if(!drv&&t>S.armUntil&&t>S.pressUntil){R.idle(dt,1.3);S.fullT=0;}
+      if(!drv&&t>S.armUntil&&t>S.pressUntil&&t>S.lidUntil){R.idle(dt,1.3);S.fullT=0;}
       R.ease(dt,3.2);
       const engOn=(drv&&S.engineOn)||t<S.engUntil;
       S.eng+=((engOn?1:0)-S.eng)*Math.min(1,dt*3);
@@ -163,7 +182,9 @@ SCENES.garbage=Object.assign({
       armPivot.rotation.z=-2.0*S.arm;
       armPivot.position.set(-3.55,1.05+1.6*ee,0);
       binPivot.rotation.z=-1.5*S.dump;
-      pressG.position.set(-3.3+.85*S.press-1.4*ee,1.6+1.9*ee,0);
+      pressG.position.set(-3.35+.85*S.press-1.4*ee,1.45+1.9*ee,0);
+      // 尾门绕靠车厢那边的铰链掀起来：板子在铰链的 -x 侧，转负角度尾端才往上抬
+      lidPivot.rotation.z=-1.75*S.lid;
       hopG.position.set(-1.1*ee,0,0);
 
       // 倒出来的垃圾：桶里 → 料斗里
@@ -172,7 +193,7 @@ SCENES.garbage=Object.assign({
       trash.children.forEach((g,i)=>{
         const u=i/10;
         if(S.full>.45||pouring){
-          g.position.set(-3.0+(u-.5)*.7,1.05+u*.32*(1-S.press*.5),(u-.5)*1.5);
+          g.position.set(-3.05+(u-.5)*.6+.95*S.press,.95+u*.35*(1-S.press*.5),(u-.5)*1.4);
           g.scale.setScalar(1-S.press*.45);
         }else{
           binPivot.getWorldPosition(_w);
@@ -190,6 +211,7 @@ SCENES.garbage=Object.assign({
       {t:'发动机转起来，油泵有劲了。',part:'engine',inner:true,
         on(){S.engineOn=true;api.sfx.loop('engine');R.start(ROUND,3);}},
       {t:'把垃圾桶挂到机械臂上。',part:'bin'},
+      {t:'尾门掀开，露出料斗。',part:'lid'},
       {t:'钢胳膊一举，桶翻过来，垃圾倒进料斗。',part:'arm'},
       {t:'压缩板把垃圾往里一推，压得扁扁的。',part:'press'},
     ];

@@ -262,7 +262,7 @@ SCENES.excavator={
     ];
     SCENES.excavator._dbg={X,startSeq,DIG,SWING,REST,DISPLAY,PIT,pitY,pileTop,boom,stick,bucket,upper,clods};
     ctx.linearize();
-    return {update,chain,onStop(){X.startOn=X.engineOn=X.pumpOn=false;X.seq=null;X.reps=0;},onStart(){},onDone(){}};
+    return {update,chain,camX(){return X.drive*.85*(1-api.ee);},onStop(){X.startOn=X.engineOn=X.pumpOn=false;X.seq=null;X.reps=0;},onStart(){},onDone(){}};
   }
 };
 })();

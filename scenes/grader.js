@@ -113,15 +113,19 @@ SCENES.grader=Object.assign({
     const bladePivot=new THREE.Group();bladePivot.position.set(1.35,1.48,0);root.add(bladePivot);
     const bladeG=new THREE.Group();bladePivot.add(bladeG);
     {
-      const R2=1.0,CX=-1.0,CY=.45,A=.42,TH=.08;
+      /* 刀板是一段弧，圆心放在前方（+x）：凹面朝前，土才会顺着弧面卷起来 */
+      const R2=1.0,CX=1.0,CY=.45,A=.42,TH=.08;
       const sh=new THREE.Shape();
-      sh.absarc(CX,CY,R2,-A,A,false);sh.absarc(CX,CY,R2-TH,A,-A,true);sh.closePath();
+      sh.absarc(CX,CY,R2,Math.PI-A,Math.PI+A,false);sh.absarc(CX,CY,R2-TH,Math.PI+A,Math.PI-A,true);sh.closePath();
       const W=3.0;
       const plate=mm(new THREE.ExtrudeGeometry(sh,{depth:W,bevelEnabled:false,curveSegments:16}),yel());
-      plate.position.set(0,-.95,-W/2);bladeG.add(plate);
-      const edge=roundedBox(.22,.1,W,.03,steel(0x6b7280));
-      edge.position.set(-.05,-1.40,0);bladeG.add(edge);
-      const hang=roundedBox(.16,.6,.16,.03,steel(0x8a929e));hang.position.set(0,-.5,0);bladeG.add(hang);
+      plate.position.set(0,-1.42,-W/2);bladeG.add(plate);
+      // 刀刃直接贴在刀板下沿，不能悬空
+      const edge=roundedBox(.2,.1,W,.03,steel(0x6b7280));
+      edge.position.set(.06,-1.40,0);bladeG.add(edge);
+      for(const s of [1,-1]){
+        const hang=roundedBox(.14,.75,.14,.03,steel(0x8a929e));hang.position.set(0,-.42,s*.7);bladeG.add(hang);
+      }
     }
     defPart('blade',{name:'刀片',outside:true,
       text:'长长的大刀片，斜着一刮路就平了。',
@@ -187,7 +191,7 @@ SCENES.grader=Object.assign({
     ];
 
     ctx.linearize();
-    return {update,chain,
+    return {update,chain,camX(){return S.drive*.85*(1-api.ee);},
       onStop(){R.stop();S.engineOn=false;for(const k of KEYS)S[k+'T']=0;},
       onStart(){},onDone(){S.engineOn=false;}};
   }

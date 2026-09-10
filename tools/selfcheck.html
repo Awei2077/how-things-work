@@ -1,0 +1,69 @@
+<!doctype html><html><head><meta charset="utf-8"><title>自检 · 每台机器跑一遍</title>
+<style>body{margin:0;background:#1b1b1b;color:#ddd;font:13px/1.4 monospace}#log{white-space:pre-wrap;padding:8px;max-height:220px;overflow:auto}iframe{width:800px;height:600px;border:0;display:block;background:#000}canvas.sheet{width:100%;display:block;margin:6px 0}</style></head>
+<body><div id="log">用法：python3 -m http.server 8791 后打开 http://localhost:8791/tools/selfcheck.html#car,dump （不带 # 就全部跑）
+准备…</div><iframe id="f"></iframe>
+<script>
+/* 自检跑一遍：每个场景加载 → 静态四个角度 → 点「开始」跑 12 秒、隔一会儿拍一张（默认视角 + 侧视）→ 拆开看 / 看里面。
+   拼成三张大图发给本地 8799 收图服务。时间用假时钟一帧帧推，不依赖 rAF。 */
+const ALL='car,washer,elevator,excavator,jet,dozer,crane,mixer,roller,loader,dump,firetruck,garbage,towercrane,pumptruck,grader,piler,forklift,sweeper,towtruck';
+const IDS=(location.hash.slice(1)||ALL).split(',').filter(Boolean);
+const RES={};window.__RES=RES;
+const L=document.getElementById('log');const log=s=>{L.textContent+=s+'\n';L.scrollTop=1e9;};
+const post=(name,c)=>fetch('http://127.0.0.1:8799/'+name,{method:'POST',body:c.toDataURL('image/jpeg',.82)});
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function makeSheet(cols,rows,w,h){const c=document.createElement('canvas');c.width=cols*w;c.height=rows*h;const g=c.getContext('2d');g.fillStyle='#101010';g.fillRect(0,0,c.width,c.height);let n=0;
+  return {c,add(src,label){const x=(n%cols)*w,y=Math.floor(n/cols)*h;g.drawImage(src,x,y,w,h);g.fillStyle='rgba(0,0,0,.6)';g.fillRect(x,y,w,20);g.fillStyle='#fff';g.font='bold 13px sans-serif';g.fillText(label,x+5,y+14);n++;}};}
+async function runScene(id){
+  const r=RES[id]={errors:[],under:[],cam:[]};
+  localStorage.setItem('muted','1');
+  const f=document.getElementById('f');
+  await new Promise(res=>{f.onload=res;f.src='/pages/'+id+'.html?t='+Date.now();});
+  const w=f.contentWindow;
+  w.addEventListener('error',e=>r.errors.push(String(e.message).slice(0,160)));
+  const ce=w.console.error.bind(w.console);w.console.error=(...a)=>{r.errors.push(a.map(String).join(' ').slice(0,160));ce(...a);};
+  for(let i=0;i<100&&!w.__dbg;i++)await sleep(100);
+  if(!w.__dbg){r.errors.push('no __dbg');return;}
+  const D=w.__dbg,T=D.THREE,doc=w.document,canvas=doc.getElementById('c');
+  const perf=w.performance,RN=perf.now.bind(perf),RT=w.setTimeout,RC=w.clearTimeout;
+  let FT=RN();const Q=[];let qid=1;
+  perf.now=()=>FT;w.setTimeout=(fn,ms)=>{const id=qid++;Q.push({id,at:FT+(ms||0),fn});return id;};w.clearTimeout=id=>{const i=Q.findIndex(q=>q.id===id);if(i>=0)Q.splice(i,1);};
+  const step=async n=>{for(let i=0;i<n;i++){FT+=33;D.cam.last=FT+1e7;D.cam.focus=null;Q.sort((a,b)=>a.at-b.at);
+    while(Q.length&&Q[0].at<=FT){const q=Q.shift();try{q.fn();}catch(e){r.errors.push('timer: '+String(e).slice(0,120));}}
+    try{D.frame();}catch(e){r.errors.push('frame: '+String(e).slice(0,120));}for(let k=0;k<4;k++)await Promise.resolve();}};
+  const setCam=(th,ph)=>{D.cam.theta=D.cam.tTheta=th;D.cam.phi=D.cam.tPhi=ph;};
+  const home=[D.cam.theta,D.cam.phi];
+  const under=()=>{const box=new T.Box3();const out=[];for(const pid in D.PARTS){const p=D.PARTS[pid];box.makeEmpty();
+    for(const m of p.meshes){if(m.userData.noHit||!m.visible)continue;m.updateWorldMatrix(true,false);box.expandByObject(m);}
+    if(!box.isEmpty()&&box.min.y<-.06)out.push(pid+' y='+box.min.y.toFixed(2));}return out;};
+  const shotAt=(sheet,label,th,ph)=>{setCam(th,ph);for(let i=0;i<2;i++){FT+=1;D.frame();}sheet.add(canvas,label);};
+  const A=makeSheet(3,2,520,390);
+  await step(60);
+  shotAt(A,id+' 默认视角',home[0],home[1]);
+  shotAt(A,id+' 侧面',0,1.35);
+  shotAt(A,id+' 后侧',2.25,1.2);
+  shotAt(A,id+' 正前',Math.PI/2,1.25);
+  r.idleUnder=under();
+  setCam(home[0],home[1]);
+  doc.querySelector('#go').click();await step(2);r.drive=D.S.drive;
+  const B=makeSheet(4,2,390,292),C=makeSheet(4,2,390,292);
+  const TS=[1,2,3.5,5,6.5,8,10,12];let done=2;
+  for(const ts of TS){const target=Math.round(ts*30);await step(target-done);done=target;
+    shotAt(B,id+' '+ts+'s',home[0],home[1]);r.cam.push(ts+'s r='+D.cam.r.toFixed(2)+' z='+D.cam.zoom.toFixed(2)+' tgt=('+D.cam.target.x.toFixed(2)+','+D.cam.target.y.toFixed(2)+') root.x='+D.root.position.x.toFixed(2)+' th='+D.cam.theta.toFixed(2));shotAt(C,id+' '+ts+'s 侧',0,1.3);
+    const u=under();if(u.length)r.under.push(ts+'s: '+u.join(','));}
+  setCam(home[0],home[1]);
+  if(D.S.drive)doc.querySelector('#go').click();await step(60);
+  D.setMode('explode');await step(160);shotAt(A,id+' 拆开看',home[0],home[1]);
+  D.setMode('xray');await step(160);shotAt(A,id+' 看里面',home[0],home[1]);
+  D.setMode('whole');await step(30);
+  for(const c of [A.c,B.c,C.c]){c.className='sheet';document.body.appendChild(c);}
+  // 本地有收图服务（scratchpad/shotsrv.py，127.0.0.1:8799）就顺便存一份，没有也不影响
+  await Promise.all([post('A_'+id,A.c),post('B_'+id,B.c),post('C_'+id,C.c)]).catch(()=>{});
+  perf.now=RN;w.setTimeout=RT;w.clearTimeout=RC;
+  try{const gl=canvas.getContext('webgl2')||canvas.getContext('webgl');gl&&gl.getExtension('WEBGL_lose_context').loseContext();}catch(e){}
+  f.src='about:blank';await sleep(150);
+}
+(async()=>{for(const id of IDS){log('▶ '+id);const t0=Date.now();
+  try{await runScene(id);}catch(e){(RES[id]=RES[id]||{errors:[],under:[]}).errors.push('harness: '+String(e).slice(0,160));}
+  const r=RES[id];log(`  ${((Date.now()-t0)/1000).toFixed(1)}s drive=${r.drive} errors=${r.errors.length} ${r.errors.slice(0,2).join(' | ')} under=${r.under.length} ${r.under.slice(0,2).join(' ; ')} idle=${(r.idleUnder||[]).join(',')}\n  cam: ${(r.cam||[]).join(' | ')}`);}
+  localStorage.setItem('muted','0');log('DONE');document.title='DONE';})();
+</script></body></html>

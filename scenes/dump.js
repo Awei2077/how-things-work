@@ -140,14 +140,16 @@ SCENES.dump=Object.assign({
       const moved=S.drive-(update._p||0);update._p=S.drive;
       root.position.x=S.drive;tk.advance(moved);
 
-      bedPivot.rotation.z=-.88*S.tip;
+      // 车斗绕后端的铰链翻起：前端抬高，所以是正角度
+      bedPivot.rotation.z=.88*S.tip;
       bedPivot.position.set(-3.1,.95+1.9*ee,0);
-      gatePivot.rotation.z=-1.15*S.gate;
+      // 挡板挂在车斗后上方，车斗翘起后它自己垂下来，再被石头推开一点
+      gatePivot.rotation.z=-.8*S.tip-.45*S.gate;
       loadG.visible=S.load>.05&&ee<.3;
       loadG.scale.setScalar(Math.max(.01,S.load));
 
       _a.set(-1.4+.4*ee,.85+1.0*ee,0);
-      const bx=-3.1+Math.cos(-.88*S.tip)*1.9, by=.95+1.9*ee+Math.sin(-.88*S.tip)*-1.9;
+      const a=.88*S.tip;const bx=-3.1+Math.cos(a)*1.9, by=.95+1.9*ee+Math.sin(a)*1.9;
       _b.set(bx,Math.max(1.1,by)+ (ee?1.9*ee:0),0);
       ram.aim(_a,_b);
       eng.spin(dt,S.eng);
@@ -164,7 +166,7 @@ SCENES.dump=Object.assign({
     ];
 
     ctx.linearize();
-    return {update,chain,
+    return {update,chain,camX(){return S.drive*.85*(1-api.ee);},
       onStop(){R.stop();S.engineOn=false;S.tipT=S.driveT=S.gateT=0;S.loadT=1;},
       onStart(){},onDone(){S.engineOn=false;}};
   }

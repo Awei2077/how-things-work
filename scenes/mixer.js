@@ -276,7 +276,7 @@ SCENES.mixer=Object.assign({
     ];
 
     ctx.linearize();
-    return {update,chain,
+    return {update,chain,camX(){return M.drive*.85*(1-api.ee);},
       onStop(){M.seq=null;M.reps=0;M.engineOn=false;M.driveT=M.chuteT=M.pourT=0;M.pileT=0;},
       onStart(){M.pileT=0;},onDone(){M.engineOn=false;}};
   }

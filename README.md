@@ -83,7 +83,7 @@ js/home.js            首页那几张会转的 3D 卡片
 scenes/*.js           一个物件一个文件，全部造型和动作都在里面
 voice/                配音（云夏 / 小依）和「文案 → 文件名」对照表
 lib/three.min.js      three.js r128（MIT）
-tools/                构建、配音生成、部署
+tools/                构建、配音生成、部署、自检（selfcheck.html：每台机器自动跑一遍拍图）
 docs/                 历史版本、旧稿、版本对照页、美术风格参考图
 ```
 

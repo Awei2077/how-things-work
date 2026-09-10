@@ -6,15 +6,16 @@ const S={fork:0,forkT:0,drive:0,driveT:0,tilt:0,tiltT:0,load:0,loadT:0,eng:0,
 let api=null;const now=()=>api.now();window.__FL=S;
 const KEYS=['fork','drive','tilt','load'];
 const JOB=[
-  {d:1200,to:{drive:1.05}},
+  {d:1200,to:{drive:.85}},
   {d:400 ,to:{load:1}},
   {d:600 ,to:{tilt:1}},
   {d:1300,to:{fork:1}},
-  {d:1300,to:{drive:-1.2}},
-  {d:900 ,to:{fork:.15}},
+  {d:1300,to:{drive:-1.4}},
+  {d:1300,to:{drive:.85}},
+  {d:900 ,to:{fork:0}},
   {d:500 ,to:{tilt:0}},
   {d:300 ,to:{load:0}},
-  {d:900 ,to:{drive:0,fork:0}},
+  {d:900 ,to:{drive:0}},
 ];
 let R=null;
 
@@ -188,7 +189,8 @@ SCENES.forklift=Object.assign({
       inner.position.y=1.5*S.fork;
       forkG.position.y=1.5*S.fork;
       const wp=new THREE.Vector3();forkG.getWorldPosition(wp);
-      if(S.load>.4){palletG.position.set(wp.x+.55,wp.y+.12,wp.z);palletG.rotation.z=.13*S.tilt;}
+      // 叉子插在托盘的板条之间：托盘随叉子走，放下时正好回到原位，不会跳
+      if(S.load>.4){palletG.position.set(wp.x+.55,wp.y-.01,wp.z);palletG.rotation.z=.13*S.tilt;}
       else{palletG.position.set(1.95,.14,0);palletG.rotation.z=0;}
       palletG.visible=ee<.3;
       eng.spin(dt,S.eng);
@@ -205,7 +207,7 @@ SCENES.forklift=Object.assign({
     ];
 
     ctx.linearize();
-    return {update,chain,
+    return {update,chain,camX(){return S.drive*.85*(1-api.ee);},
       onStop(){R.stop();S.engineOn=false;for(const k of KEYS)S[k+'T']=0;},
       onStart(){},onDone(){S.engineOn=false;}};
   }

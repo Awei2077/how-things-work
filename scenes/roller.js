@@ -236,7 +236,7 @@ SCENES.roller=Object.assign({
     ];
 
     ctx.linearize();
-    return {update,chain,
+    return {update,chain,camX(){return R.drive*.85*(1-api.ee);},
       onStop(){R.seq=null;R.reps=0;R.engineOn=false;R.driveT=R.sprayT=R.vibT=0;},
       onStart(){},onDone(){R.engineOn=false;}};
   }

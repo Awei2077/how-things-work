@@ -31,7 +31,7 @@ function nextSeg(){
 
 SCENES.crane=Object.assign({
   id:'crane',title:'吊车',subtitle:'拖一拖转圈 · 点零件听听',night:false,
-  fit:{w:13,h:9.2,ty:2.4,tyEx:3.2,rEx:1.25,cx:-.6},cameraStart:{theta:1.0,phi:1.15},
+  fit:{w:13,h:10.5,ty:2.6,tyEx:3.2,rEx:1.25,cx:-.6},cameraStart:{theta:1.0,phi:1.15},
   order:['boom','hook','winch','slew','legs','cab','engine','cw','body','start'],
   go:{on:'开始吊',off:'停下',stopSaid:'停下啦',stopHint:'再按一下，再吊一次！',
     done:'吊好啦！大箱子稳稳放到旁边。',doneHintXray:'看，卷扬机在收钢丝绳。点「停下」再吊一次。',
@@ -258,7 +258,7 @@ SCENES.crane=Object.assign({
     ];
 
     ctx.linearize();
-    return {update,chain,
+    return {update,chain,camY(){return (1.4*C.pitch+.6*C.ext)*(1-api.ee);},
       onStop(){C.seq=null;C.reps=0;C.engineOn=false;
         C.legT=C.pitchT=C.extT=C.hookT=C.slewT=C.liftedT=0;},
       onStart(){},onDone(){C.engineOn=false;}};
