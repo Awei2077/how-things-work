@@ -143,13 +143,15 @@ SCENES.pumptruck=Object.assign({
     }
 
     const eng=RIG.engine(ctx,{scale:1.0});
-    place(eng.group,V(2.8,.95,0),V(3.8,1.9,0));
+    // 发动机在驾驶室地板下面，看里面才看得见
+    place(eng.group,V(2.8,.45,0),V(3.8,1.9,0));
     defPart('engine',{name:'发动机',
       text:'发动机带着油泵，油泵推动活塞和长臂。',
       more:'泵送的时候车是停着的，发动机的力气全部给了液压系统——推活塞、撑支腿、展开长臂，都靠它。',
       action(){S.engUntil=now()+3200;}},[eng.group]);
 
-    const sb=RIG.startBtn(ctx,2.8,2.6,1.0);root.add(sb.group);
+    // 启动按钮在驾驶室的仪表台上
+    const sb=RIG.startBtn(ctx,tk.btnAt.x,tk.btnAt.y,tk.btnAt.z,.6);tk.cab.add(sb.group);
     defPart('start',{name:'启动按钮',isStart:true,
       text:'按一下，泵车就开始送混凝土啦！',
       more:'一台泵车能顶几十个人提桶，楼盖得快全靠它。'},[sb.group]);

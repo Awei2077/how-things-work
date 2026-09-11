@@ -157,13 +157,15 @@ SCENES.garbage=Object.assign({
     trash.userData.noHit=true;root.add(trash);
 
     const eng=RIG.engine(ctx,{scale:.9});
-    place(eng.group,V(2.5,.9,0),V(3.4,1.8,0));
+    // 发动机在驾驶室地板下面，看里面才看得见
+    place(eng.group,V(2.5,.45,0),V(3.4,1.8,0));
     defPart('engine',{name:'发动机',
       text:'发动机带着油泵，机械臂和压缩板都靠它。',
       more:'收垃圾时车虽然停着，发动机还在转——因为举桶和压缩全靠液压油，油泵得一直有力气。',
       action(){S.engUntil=now()+3200;}},[eng.group]);
 
-    const sb=RIG.startBtn(ctx,2.5,2.4,.95);root.add(sb.group);
+    // 启动按钮在驾驶室的仪表台上
+    const sb=RIG.startBtn(ctx,tk.btnAt.x,tk.btnAt.y,tk.btnAt.z,.6);tk.cab.add(sb.group);
     defPart('start',{name:'启动按钮',isStart:true,
       text:'按一下，垃圾车就开始收啦！',
       more:'每天天没亮垃圾车就出门了，一条街一条街地收。'},[sb.group]);

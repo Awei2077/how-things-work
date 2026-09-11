@@ -219,13 +219,15 @@ SCENES.firetruck=Object.assign({
       more:'消防车出警时警灯和警笛一起开。看到闪灯听到笛声，前面的车都要靠边让出一条生命通道。'},[lightG]);
 
     const eng=RIG.engine(ctx,{scale:1.0});
-    place(eng.group,V(2.6,.95,0),V(3.6,1.9,0));
+    // 发动机在驾驶室地板下面，看里面才看得见
+    place(eng.group,V(2.6,.45,0),V(3.6,1.9,0));
     defPart('engine',{name:'发动机',
       text:'发动机既让车跑，也带着水泵转。',
       more:'到了火场，司机会把发动机的力气切给水泵。所以喷水的时候车是停着的，但发动机一直在大声地转。',
       action(){S.engUntil=now()+3200;}},[eng.group]);
 
-    const sb=RIG.startBtn(ctx,2.6,2.6,1.0);root.add(sb.group);
+    // 启动按钮在驾驶室的仪表台上
+    const sb=RIG.startBtn(ctx,tk.btnAt.x,tk.btnAt.y,tk.btnAt.z,.6);tk.cab.add(sb.group);
     defPart('start',{name:'启动按钮',isStart:true,
       text:'按一下，消防车就出动啦！',
       more:'警铃一响，消防员几十秒就能穿好衣服上车出发。'},[sb.group]);

@@ -80,7 +80,7 @@ SCENES.crane=Object.assign({
     const YEL=0xF2B233,yel=()=>plastic(YEL);
 
     /* 底盘 */
-    const tk=RIG.truck(ctx,{color:YEL,cabX:2.5,wheelR:.55,halfZ:1.0,
+    const tk=RIG.truck(ctx,{color:YEL,cabX:2.5,wheelR:.55,halfZ:1.0,driver:false,
       frameFrom:-3.8,frameTo:3.3,axles:[{x:2.2},{x:1.15},{x:-2.0,dual:true},{x:-3.0,dual:true}]});
     place(tk.group,V(0,0,0),V(0,-.0,0));
     defPart('body',{name:'车身',outside:true,
@@ -131,7 +131,7 @@ SCENES.crane=Object.assign({
       markShell(house);place(house,V(0,0,0),V(0,2.2,0));
     }
     const opCab=RIG.cab(ctx,{w:1.0,h:1.25,d:1.1,color:0x3a4150});
-    opCab.group.position.set(-.55,.53,.72);turn.add(opCab.group);
+    opCab.group.position.set(-.55,.53,.72);opCab.group.rotation.y=Math.PI;turn.add(opCab.group);
     markShell(opCab.group);
 
     const cwG=new THREE.Group();
@@ -199,18 +199,11 @@ SCENES.crane=Object.assign({
       more:'吊车上的每一个动作——伸臂、抬臂、收绳、转身——都靠液压油推动，而油泵的力气来自这台发动机。',
       action(){C.engUntil=now()+3200;}},[engine]);
 
-    /* 启动按钮 */
-    const startG=new THREE.Group();
-    {
-      const base=mm(new THREE.CylinderGeometry(.15,.15,.07,18),dark(0x262b35));startG.add(base);
-      const btn=mm(new THREE.CylinderGeometry(.11,.11,.09,18),
-        new THREE.MeshStandardMaterial({color:0x35C46B,emissive:0x35C46B,emissiveIntensity:.35,roughness:.4}));
-      btn.position.y=.06;btn.userData.keepEm=true;startG.add(btn);
-      startG.position.set(2.5,2.4,1.05);root.add(startG);
-    }
+    /* 启动按钮：在驾驶室的仪表台上，司机伸手就够得着 */
+    const sb=RIG.startBtn(ctx,opCab.btnAt.x,opCab.btnAt.y,opCab.btnAt.z,.55);opCab.group.add(sb.group);
     defPart('start',{name:'启动按钮',isStart:true,
       text:'按一下，吊车就开始干活啦！',
-      more:'司机先把四条支腿撑好，再按这个按钮，吊臂才肯动。'},[startG]);
+      more:'司机先把四条支腿撑好，再按这个按钮，吊臂才肯动。'},[sb.group]);
 
     const _h=new THREE.Vector3(),_t=new THREE.Vector3();
     function update(dt){
@@ -260,7 +253,7 @@ SCENES.crane=Object.assign({
       const spin=dt*C.eng*(2+8*Math.abs(C.hookT-C.hook));
       winchG.children[0].rotation.z-=spin*6;
       engine.children[2].rotation.x+=dt*C.eng*20;
-      startG.children[1].material.emissiveIntensity=.35+(drv?.5:0)*(Math.sin(t/220)*.5+.5);
+      sb.pulse(drv,t);
     }
 
     const chain=[

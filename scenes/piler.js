@@ -164,7 +164,8 @@ SCENES.piler=Object.assign({
       more:'打桩机干活时发动机声音特别大，因为提几吨重的锤子非常费劲，一分钟要提三四十次。',
       action(){S.engUntil=now()+3200;}},[eng.group]);
 
-    const sb=RIG.startBtn(ctx,-.6,2.3,1.1);root.add(sb.group);
+    // 启动按钮在驾驶室的仪表台上
+    const sb=RIG.startBtn(ctx,cabRig.btnAt.x,cabRig.btnAt.y,cabRig.btnAt.z,.55);cabRig.group.add(sb.group);
     defPart('start',{name:'启动按钮',isStart:true,
       text:'按一下，打桩机就开始打啦！',
       more:'打桩声音很大，工地附近一般规定只能白天打。'},[sb.group]);

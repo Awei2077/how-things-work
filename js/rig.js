@@ -56,6 +56,32 @@ function crawler(ctx,o){
 
 /* 驾驶室：四根立柱 + 顶棚 + 玻璃 + 座椅。玻璃打了 glass 标记，
    「看里面」时不会发光、也不挡视线。 */
+/* 坐着的司机：原点在座椅面中心，面朝 +x（车头）。s 是整体缩放，s=1 时坐高约 1.03。
+   胳膊伸向前方的方向盘，脚落在座椅前下方 0.4*s 处。 */
+function driver(ctx,o){
+  o=o||{};
+  const {THREE,mm,roundedBox,matte}=ctx;
+  const s=o.s!=null?o.s:1, SHIRT=o.shirt!=null?o.shirt:0x3A7BD5, PANTS=o.pants!=null?o.pants:0x2b3a55,
+        SKIN=0xF6D2B0, HAT=o.hat!=null?o.hat:0xF2B233;
+  const g=new THREE.Group();
+  const add=(m,x,y,z)=>{m.position.set(x*s,y*s,z*s);g.add(m);return m;};
+  add(roundedBox(.42*s,.16*s,.4*s,.04*s,matte(PANTS)),.14,.08,0);                 // 大腿往前伸
+  for(const z of [.11,-.11]){
+    add(roundedBox(.12*s,.36*s,.12*s,.03*s,matte(PANTS)),.32,-.16,z);              // 小腿垂下去
+    add(roundedBox(.2*s,.08*s,.13*s,.02*s,matte(0x2b2b2b)),.38,-.36,z);            // 鞋
+  }
+  add(roundedBox(.26*s,.56*s,.42*s,.06*s,matte(SHIRT)),-.06,.42,0);                // 身子
+  for(const z of [.26,-.26]){
+    const arm=roundedBox(.1*s,.34*s,.1*s,.03*s,matte(SHIRT));arm.rotation.z=.83;add(arm,.16,.51,z); // 胳膊伸向方向盘
+    add(mm(new THREE.SphereGeometry(.055*s,10,8),matte(SKIN)),.26,.42,z);           // 手
+  }
+  add(mm(new THREE.SphereGeometry(.15*s,14,12),matte(SKIN)),-.02,.88,0);           // 头
+  add(mm(new THREE.SphereGeometry(.165*s,14,8,0,Math.PI*2,0,Math.PI/2),matte(HAT)),-.02,.9,0); // 安全帽
+  add(mm(new THREE.CylinderGeometry(.2*s,.2*s,.03*s,16),matte(HAT)),-.02,.9,0);    // 帽檐
+  g.traverse(m=>{if(m.isMesh)m.castShadow=true;});
+  return g;
+}
+
 function cab(ctx,o){
   o=o||{};
   const {THREE,mm,roundedBox,dark,steel,glassMat,matte}=ctx;
@@ -75,9 +101,21 @@ function cab(ctx,o){
   add(W-P*2,H-.35,0,H/2+.05,-D/2+.03);                 // 后
   add(D-P*2,H-.35, W/2-.03,H/2+.05,0,Math.PI/2);       // 左
   add(D-P*2,H-.35,-W/2+.03,H/2+.05,0,Math.PI/2);       // 右
-  const seat=roundedBox(.5,.12,.5,.04,matte(0x2b3038));seat.position.set(0,.52,-.15);g.add(seat);
-  const back=roundedBox(.5,.6,.12,.04,matte(0x2b3038));back.position.set(0,.85,-.42);g.add(back);
-  return {group:g,glass:panes};
+  /* 座椅朝 +x（车头方向）：靠背在后、仪表台和方向盘在前，司机坐中间 */
+  const seat=roundedBox(.5,.12,.5,.04,matte(0x2b3038));seat.position.set(-.15,.46,0);g.add(seat);
+  const back=roundedBox(.12,.6,.5,.04,matte(0x2b3038));back.position.set(-.4,.8,0);g.add(back);
+  const dash=roundedBox(.14,.28,Math.min(D-.4,.9),.03,dark(0x262b35));dash.position.set(W/2-.16,.78,0);g.add(dash);
+  const whG=new THREE.Group();whG.rotation.z=-.5;whG.position.set(W/2-.36,.92,0);g.add(whG);
+  const wh=mm(new THREE.TorusGeometry(.12,.022,8,18),dark(0x262b35));wh.rotation.y=Math.PI/2;whG.add(wh);
+  let drv=null;
+  if(o.driver!==false){
+    // 司机个头按驾驶室高度缩，头顶离车顶留一点
+    const s=Math.max(.5,Math.min(1,(H-.63)/1.03));
+    drv=driver(ctx,{s,hat:o.hat,shirt:o.shirt});drv.position.set(-.15,.52,0);g.add(drv);
+  }
+  // 玻璃不挡点选：手指戳进去点到的是里面的按钮
+  for(const p of panes)p.userData.noHit=true;
+  return {group:g,glass:panes,driver:drv,btnAt:new THREE.Vector3(W/2-.16,.93,.22)};
 }
 
 /* 液压油缸：缸体固定在 a 点，活塞杆伸向 b 点。
@@ -149,18 +187,31 @@ function truck(ctx,o){
     const cr=roundedBox(.14,.16,1.0,.03,dark(0x3a4150));
     cr.position.set(FL+.5+i*((FR-FL-1)/4),.62,0);g.add(cr);
   }
-  /* 驾驶室 */
+  /* 驾驶室：做成空心的，隔着挡风玻璃能看见司机、方向盘和启动按钮 */
   const cabG=new THREE.Group();
   {
-    const shell=roundedBox(1.7,1.5,2.0,.14,body());shell.position.set(0,1.5,0);cabG.add(shell);
-    const wind=mm(new THREE.BoxGeometry(.06,.78,1.68),glassMat());
-    wind.position.set(.83,1.86,0);wind.userData.glass=true;wind.castShadow=false;cabG.add(wind);
+    const floor=roundedBox(1.7,.1,2.0,.03,body());floor.position.set(0,.8,0);cabG.add(floor);
+    const roof=roundedBox(1.7,.12,2.0,.05,body());roof.position.set(0,2.19,0);cabG.add(roof);
+    const front=roundedBox(.14,.72,2.0,.05,body());front.position.set(.78,1.11,0);cabG.add(front);    // 挡风玻璃下面那块
+    const back=roundedBox(.14,1.5,2.0,.05,body());back.position.set(-.78,1.5,0);cabG.add(back);
+    const glass=(w,h,d,x,y,z)=>{const m=mm(new THREE.BoxGeometry(w,h,d),glassMat());m.position.set(x,y,z);
+      m.userData.glass=true;m.userData.noHit=true;m.castShadow=false;cabG.add(m);return m;};
+    glass(.06,.72,1.72,.83,1.79,0);                                                            // 挡风玻璃
     for(const s of [1,-1]){
-      const side=mm(new THREE.BoxGeometry(.9,.6,.05),glassMat());
-      side.position.set(.1,1.86,s*.99);side.userData.glass=true;side.castShadow=false;cabG.add(side);
+      const low=roundedBox(1.7,.72,.12,.04,body());low.position.set(0,1.11,s*.94);cabG.add(low);     // 车门下半
+      const rear=roundedBox(.55,.72,.12,.04,body());rear.position.set(-.575,1.79,s*.94);cabG.add(rear);
+      const pillar=roundedBox(.12,.72,.12,.03,body());pillar.position.set(.79,1.79,s*.94);cabG.add(pillar);
+      glass(.98,.66,.05,.19,1.79,s*.95);                                                       // 侧窗
       const handle=roundedBox(.2,.06,.05,.02,steel(0x9aa2ad));handle.position.set(-.2,1.44,s*1.0);cabG.add(handle);
       const mir=roundedBox(.08,.3,.1,.03,dark(0x262b35));mir.position.set(.72,1.9,s*1.12);cabG.add(mir);
     }
+    /* 里面：仪表台、方向盘、座椅、司机（座椅在左边，中国的车都是左舵） */
+    const dash=roundedBox(.3,.22,1.5,.04,dark(0x262b35));dash.position.set(.58,1.36,0);cabG.add(dash);
+    const seat=roundedBox(.5,.12,.5,.04,matte(0x2b3038));seat.position.set(-.3,1.18,-.45);cabG.add(seat);
+    const sback=roundedBox(.12,.6,.5,.04,matte(0x2b3038));sback.position.set(-.56,1.5,-.45);cabG.add(sback);
+    const whG=new THREE.Group();whG.rotation.z=-.5;whG.position.set(.32,1.55,-.45);cabG.add(whG);
+    const wh=mm(new THREE.TorusGeometry(.13,.025,8,18),dark(0x262b35));wh.rotation.y=Math.PI/2;whG.add(wh);
+    if(o.driver!==false){const d=driver(ctx,{s:.78,hat:o.hat,shirt:o.shirt});d.position.set(-.3,1.24,-.45);cabG.add(d);}
     const grille=roundedBox(.14,.5,1.5,.04,dark(0x262b35));grille.position.set(.9,1.0,0);cabG.add(grille);
     for(const s of [1,-1]){
       const lamp=mm(new THREE.CylinderGeometry(.13,.13,.1,16),matte(0xFFF3D0));
@@ -185,7 +236,7 @@ function truck(ctx,o){
   function advance(dist){for(const w of wheels)w.spin.rotation.z-=dist/w.R;}
   /* 自己挂到 root：place() 只记位置不挂节点，靠场景记得 defPart(tk.group) 太容易漏 */
   ctx.root.add(g);
-  return {group:g,cab:cabG,wheels,advance,wheelR:R};
+  return {group:g,cab:cabG,wheels,advance,wheelR:R,btnAt:new THREE.Vector3(.6,1.47,-.2)};
 }
 
 /* 伸缩臂：一节套一节，set(k) 里 k=0 全缩、k=1 全伸。 */
@@ -346,14 +397,14 @@ function seqRunner(st,keys){
 }
 
 /* 绿色启动按钮，每台车都有一个 */
-function startBtn(ctx,x,y,z){
+function startBtn(ctx,x,y,z,s){
   const {THREE,mm,dark}=ctx;
   const g=new THREE.Group();
   const base=mm(new THREE.CylinderGeometry(.15,.15,.07,18),dark(0x262b35));g.add(base);
   const btn=mm(new THREE.CylinderGeometry(.11,.11,.09,18),
     new THREE.MeshStandardMaterial({color:0x35C46B,emissive:0x35C46B,emissiveIntensity:.35,roughness:.4}));
   btn.position.y=.06;btn.userData.keepEm=true;g.add(btn);
-  g.position.set(x,y,z);
+  g.position.set(x,y,z);if(s)g.scale.setScalar(s);
   return {group:g,pulse(on,t){btn.material.emissiveIntensity=.35+(on?.5:0)*(Math.sin(t/220)*.5+.5);}};
 }
 
@@ -395,5 +446,5 @@ function upgrade(ctx){
   });
 }
 
-return {crawler,cab,ram,wheel,truck,boom,outrigger,drum,site,SKY,seqRunner,startBtn,engine,upgrade};
+return {crawler,cab,driver,ram,wheel,truck,boom,outrigger,drum,site,SKY,seqRunner,startBtn,engine,upgrade};
 })();

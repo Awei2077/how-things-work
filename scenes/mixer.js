@@ -149,7 +149,7 @@ SCENES.mixer=Object.assign({
       const h=mm(new THREE.CylinderGeometry(.5,.22,.55,16,1,true),steel(0x8a929e));
       h.position.set(0,.28,0);hopG.add(h);
       const lip=mm(new THREE.TorusGeometry(.5,.045,8,20),steel(0x6b7280));
-      lip.position.y=.55;hopG.add(lip);
+      lip.rotation.x=Math.PI/2;lip.position.y=.55;hopG.add(lip);
       const neck=mm(new THREE.CylinderGeometry(.2,.2,.45,12),steel(0x6b7280));
       neck.position.set(.16,-.18,0);neck.rotation.z=.5;hopG.add(neck);
       hopG.position.set(-3.32,2.32,0);root.add(hopG);
@@ -201,24 +201,19 @@ SCENES.mixer=Object.assign({
       const head=roundedBox(.9,.18,.7,.04,matte(0xC0392B));head.position.y=.38;engine.add(head);
       const fan=mm(new THREE.CylinderGeometry(.24,.24,.06,16),steel(0x6b7280));
       fan.position.set(.55,0,0);fan.rotation.z=Math.PI/2;engine.add(fan);
-      place(engine,V(2.5,.95,0),V(3.2,1.9,0));
+      // 发动机在驾驶室地板下面，看里面才看得见
+    place(engine,V(2.5,.45,0),V(3.2,1.9,0));
     }
     defPart('engine',{name:'发动机',
       text:'发动机既管开车，也管转筒子。',
       more:'搅拌筒不是电动的，它的力气也来自发动机——通过一套液压马达带着筒慢慢转。',
       action(){M.engUntil=now()+3200;}},[engine]);
 
-    const startG=new THREE.Group();
-    {
-      const base=mm(new THREE.CylinderGeometry(.15,.15,.07,18),dark(0x262b35));startG.add(base);
-      const btn=mm(new THREE.CylinderGeometry(.11,.11,.09,18),
-        new THREE.MeshStandardMaterial({color:0x35C46B,emissive:0x35C46B,emissiveIntensity:.35,roughness:.4}));
-      btn.position.y=.06;btn.userData.keepEm=true;startG.add(btn);
-      startG.position.set(2.5,2.45,1.0);root.add(startG);
-    }
+    /* 启动按钮：在驾驶室的仪表台上，司机伸手就够得着 */
+    const sb=RIG.startBtn(ctx,tk.btnAt.x,tk.btnAt.y,tk.btnAt.z,.6);tk.cab.add(sb.group);
     defPart('start',{name:'启动按钮',isStart:true,
       text:'按一下，搅拌车就出发啦！',
-      more:'开车之前先让筒子转起来，一路转到工地。'},[startG]);
+      more:'开车之前先让筒子转起来，一路转到工地。'},[sb.group]);
 
     function update(dt){
       const t=now(),drv=api.S.drive,ee=api.ee;
@@ -262,7 +257,7 @@ SCENES.mixer=Object.assign({
         d.scale.setScalar(pouring?(.8+.4*Math.sin(u*6)):0);
       }
       engine.children[2].rotation.x+=dt*M.eng*20;
-      startG.children[1].material.emissiveIntensity=.35+(drv?.5:0)*(Math.sin(t/220)*.5+.5);
+      sb.pulse(drv,t);
     }
 
     const chain=[

@@ -155,7 +155,8 @@ SCENES.grader=Object.assign({
       more:'平地机的发动机装在最后面，一来给中间的刀片让位置，二来压住后轮增加抓地力。',
       action(){S.engUntil=now()+3200;}},[eng.group]);
 
-    const sb=RIG.startBtn(ctx,-.2,2.6,.72);root.add(sb.group);
+    // 启动按钮在驾驶室的仪表台上
+    const sb=RIG.startBtn(ctx,cabRig.btnAt.x,cabRig.btnAt.y,cabRig.btnAt.z,.6);cabRig.group.add(sb.group);
     defPart('start',{name:'启动按钮',isStart:true,
       text:'按一下，平地机就开始刮啦！',
       more:'刮路要一遍一遍慢慢来，急不得。'},[sb.group]);

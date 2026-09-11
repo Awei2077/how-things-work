@@ -116,13 +116,15 @@ SCENES.dump=Object.assign({
       action(){S.tipUntil=now()+3200;}},[ramG]);
 
     const eng=RIG.engine(ctx,{scale:1.0});
-    place(eng.group,V(2.4,.95,0),V(3.4,1.9,0));
+    // 发动机在驾驶室地板下面，看里面才看得见
+    place(eng.group,V(2.4,.45,0),V(3.4,1.9,0));
     defPart('engine',{name:'发动机',
       text:'发动机带着油泵，油泵推动大油缸。',
       more:'卸货时司机会踩一脚油门，发动机转得快一点，油泵才有足够的力气把车厢顶起来。',
       action(){S.engUntil=now()+3200;}},[eng.group]);
 
-    const sb=RIG.startBtn(ctx,2.4,2.45,1.0);root.add(sb.group);
+    // 启动按钮在驾驶室的仪表台上
+    const sb=RIG.startBtn(ctx,tk.btnAt.x,tk.btnAt.y,tk.btnAt.z,.6);tk.cab.add(sb.group);
     defPart('start',{name:'启动按钮',isStart:true,
       text:'按一下，卡车就出发啦！',
       more:'装好车、关好挡板，就可以上路了。'},[sb.group]);

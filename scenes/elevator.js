@@ -163,10 +163,21 @@ SCENES.elevator={
      for(const z of [.07,-.07]){const leg=mm(new THREE.CylinderGeometry(.045,.045,.26,8),matte(0x3a63b8));leg.position.set(0,.13,z);kid.add(leg);}
      for(const z of [.17,-.17]){const arm=mm(new THREE.CylinderGeometry(.035,.035,.26,8),matte(0xFFB020));arm.position.set(0,.45,z);arm.rotation.x=z>0?-.3:.3;kid.add(arm);}
      kid.position.set(1.9,.03,.5);kid.rotation.y=Math.PI/2+.3;root.add(kid);}
+    /* ---- 大人：牵着小朋友一起坐（小朋友不能一个人坐电梯） ---- */
+    const adult=new THREE.Group();
+    {const body=capsule(.145,.34,matte(0xC0507A),12);body.rotation.z=Math.PI/2;body.position.y=.5;adult.add(body);
+     const head=mm(new THREE.SphereGeometry(.15,14,10),matte(0xF6D2B0));head.position.y=.92;adult.add(head);
+     const hair=mm(new THREE.SphereGeometry(.155,14,8,0,Math.PI*2,0,Math.PI/2),matte(0x4a2e1a));hair.position.y=.94;adult.add(hair);
+     for(const z of [.08,-.08]){const leg=mm(new THREE.CylinderGeometry(.05,.05,.34,8),matte(0x2b3a55));leg.position.set(0,.17,z);adult.add(leg);}
+     for(const z of [.19,-.19]){const arm=mm(new THREE.CylinderGeometry(.04,.04,.32,8),matte(0xC0507A));arm.position.set(0,.53,z);arm.rotation.x=z>0?-.3:.3;adult.add(arm);}
+     adult.position.set(1.9,.03,.05);adult.rotation.y=Math.PI/2+.3;root.add(adult);}
     const K={x:1.9,z:.5,floorY:.03,tx:1.9,tz:.5,inCab:false,toCab:false,exitPending:false,legs:kid.children.filter((c,i)=>i===3||i===4)};
-    function kidReset(){K.inCab=false;K.toCab=false;K.exitPending=false;K.floorY=.03;K.x=1.9;K.z=.5;K.tx=1.9;K.tz=.5;}
-    function kidEnter(){K.toCab=true;K.tx=.05;K.tz=.1;}
-    function kidExit(){K.inCab=false;K.x=cab.position.x+.05;K.z=.1;K.floorY=cab.position.y+.05;K.tx=1.9;K.tz=.5;}
+    const A={x:1.9,z:.05,floorY:.03,tx:1.9,tz:.05,inCab:false,toCab:false,legs:adult.children.filter((c,i)=>i===3||i===4)};
+    function kidReset(){K.inCab=false;K.toCab=false;K.exitPending=false;K.floorY=.03;K.x=1.9;K.z=.5;K.tx=1.9;K.tz=.5;
+      A.inCab=false;A.toCab=false;A.floorY=.03;A.x=1.9;A.z=.05;A.tx=1.9;A.tz=.05;}
+    function kidEnter(){K.toCab=true;K.tx=.05;K.tz=.1;A.toCab=true;A.tx=-.12;A.tz=-.32;}
+    function kidExit(){K.inCab=false;K.x=cab.position.x+.05;K.z=.1;K.floorY=cab.position.y+.05;K.tx=1.9;K.tz=.5;
+      A.inCab=false;A.x=cab.position.x-.12;A.z=-.32;A.floorY=cab.position.y+.05;A.tx=1.9;A.tz=.05;}
 
     /* ---- 每帧 ---- */
     function update(dt){
@@ -190,12 +201,16 @@ SCENES.elevator={
       E.buffer+=(E.bufferT-E.buffer)*Math.min(1,dt*6);for(const g of bufSprings)g.scale.y=1-E.buffer*.45;
       startBtn.userData.dynInt=(drv||E.rideStep)?1.4:0;
       // 小朋友
-      if(K.inCab){kid.position.set(cab.position.x+.05,cab.position.y+.08,.1);kid.rotation.y=Math.PI/2;}
-      else{const dx=K.tx-K.x,dz=K.tz-K.z,d=Math.hypot(dx,dz);let moving=false;
-        if(d>.02){const st=Math.min(d,dt*1.1);K.x+=dx/d*st;K.z+=dz/d*st;kid.rotation.y=Math.atan2(dx,dz);moving=true;}
-        else if(K.toCab){K.toCab=false;K.inCab=true;E.doorT=0;}
-        kid.position.set(K.x,K.floorY+(moving?Math.abs(Math.sin(t*.012))*.04:0),K.z);
-        for(const [i,l] of K.legs.entries())l.rotation.x=moving?Math.sin(t*.012+i*Math.PI)*.5:0;}
+      const walk=(P,fig,inX,inZ)=>{
+        if(P.inCab){fig.position.set(cab.position.x+inX,cab.position.y+.08,inZ);fig.rotation.y=Math.PI/2;return true;}
+        const dx=P.tx-P.x,dz=P.tz-P.z,d=Math.hypot(dx,dz);let moving=false;
+        if(d>.02){const st=Math.min(d,dt*1.1);P.x+=dx/d*st;P.z+=dz/d*st;fig.rotation.y=Math.atan2(dx,dz);moving=true;}
+        fig.position.set(P.x,P.floorY+(moving?Math.abs(Math.sin(t*.012))*.04:0),P.z);
+        for(const [i,l] of P.legs.entries())l.rotation.x=moving?Math.sin(t*.012+i*Math.PI)*.5:0;
+        return d<=.02;};
+      const kArr=walk(K,kid,.05,.1),aArr=walk(A,adult,-.12,-.32);
+      // 两个人都进了轿厢，门才关
+      if(K.toCab&&kArr&&aArr){K.toCab=false;A.toCab=false;K.inCab=A.inCab=true;E.doorT=0;}
       if(E.exitPending&&Math.abs(E.cabY-E.cabT)<.02&&Math.abs(E.cabV)<.05){E.exitPending=false;api.sfx.stopLoop();api.sfx.ding();E.doorT=1;setTimeout(kidExit,700);}
       /* 循环：走出来站一会儿 → 再走进去 → 门关上 → 去另一层 → 再走出来，一直上上下下 */
       if(drv&&E.loopOn&&!E.exitPending){
@@ -216,14 +231,14 @@ SCENES.elevator={
     }
     const chain=[
       {t:'按一下按钮，电梯就来啦。',part:'start',on(){E.rideStep=0;E.cabT=0;kidReset();setTimeout(()=>{E.doorT=1;},500);}},
-      {t:'门开了，小朋友走进去。',part:'doors',on(){kidEnter();}},
+      {t:'门开了，小朋友牵着大人的手一起走进去。坐电梯要有大人陪着哦。',part:'doors',on(){kidEnter();}},
       {t:'顶上的电机转动大轮子。',part:'machine',on(){api.sfx.loop('hum');}},
       {t:'钢绳拉着轿厢往上，对重就往下。',part:'ropes',on(){E.cabT=FLOOR_H*2;}},
-      {t:'到三楼啦！叮——门打开，小朋友走出来。',part:'cab',on(){E.exitPending=true;E.loopOn=true;E.loopAt=0;}},
+      {t:'到三楼啦！叮——门打开，两个人一起走出来。',part:'cab',on(){E.exitPending=true;E.loopOn=true;E.loopAt=0;}},
     ];
     SCENES.elevator._dbg={E,K,kidEnter,kidExit,kidReset};
     ctx.linearize();
-    return {update,chain,hideOnExplode:[...shell.userData.landing,kid],onStop(){E.doorT=0;E.rideStep=0;E.cabT=0;E.exitPending=false;E.loopOn=false;E.loopAt=0;kidReset();},onStart(){},onDone(){}};
+    return {update,chain,hideOnExplode:[...shell.userData.landing,kid,adult],onStop(){E.doorT=0;E.rideStep=0;E.cabT=0;E.exitPending=false;E.loopOn=false;E.loopAt=0;kidReset();},onStart(){},onDone(){}};
   }
 };
 })();

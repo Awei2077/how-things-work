@@ -238,18 +238,11 @@ SCENES.dozer={
       more:'地太硬的时候铲刀推不动，就先放下松土器，像耙子一样把地划开，土松了再推就轻松了。',
       action(){D.ripUntil=now()+3000;}},[ripG]);
 
-    /* 启动按钮 */
-    const startG=new THREE.Group();
-    {
-      const base=mm(new THREE.CylinderGeometry(.15,.15,.07,18),dark(0x262b35));startG.add(base);
-      const btn=mm(new THREE.CylinderGeometry(.11,.11,.09,18),
-        new THREE.MeshStandardMaterial({color:0x35C46B,emissive:0x35C46B,emissiveIntensity:.35,roughness:.4}));
-      btn.position.y=.06;btn.userData.keepEm=true;startG.add(btn);
-      startG.position.set(-.62,2.02,-.55);root.add(startG);
-    }
+    /* 启动按钮：在驾驶室的仪表台上，司机伸手就够得着 */
+    const sb=RIG.startBtn(ctx,cabRig.btnAt.x,cabRig.btnAt.y,cabRig.btnAt.z,.6);cabRig.group.add(sb.group);
     defPart('start',{name:'启动按钮',isStart:true,
       text:'按一下，推土机就开始干活啦！',
-      more:'司机上车先按这个按钮，发动机转起来，液压泵才有力气抬铲刀。'},[startG]);
+      more:'司机上车先按这个按钮，发动机转起来，液压泵才有力气抬铲刀。'},[sb.group]);
 
     /* ---------- 每帧 ---------- */
     const _a=new THREE.Vector3(),_b=new THREE.Vector3(),
@@ -300,8 +293,6 @@ SCENES.dozer={
       ripG.position.set(-2.3,1.52-D.ripper*.42,0);
       ripG.rotation.z=D.ripper*.18;
       ex(-2.6,1.2,0,ripG);
-      startG.position.set(-.62,2.02,-.55);
-      ex(-.4,2.0,-1.6,startG);
 
       // 油缸：一头在机身上，一头顶着铲刀背面
       for(const {r,s} of rams){
@@ -317,7 +308,7 @@ SCENES.dozer={
       const shake=D.eng*(1-ee)*.012;
       hood.position.y=hood.userData.home.y+hood.userData.explode.y*ee+Math.sin(t/55)*shake;
       engine.children.forEach(c=>{if(c.geometry&&c.geometry.type==='CylinderGeometry'&&c.rotation.z!==0)c.rotation.x+=dt*D.eng*22;});
-      startG.children[1].material.emissiveIntensity=.35+(drv?.5:0)*(Math.sin(t/220)*.5+.5);
+      sb.pulse(drv,t);
     }
 
     const chain=[

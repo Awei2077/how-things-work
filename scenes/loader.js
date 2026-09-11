@@ -161,7 +161,8 @@ SCENES.loader=Object.assign({
       more:'装载机干活时又要跑又要举，发动机的力气分成两路：一路推轮子，一路推油泵。',
       action(){S.engUntil=now()+3200;}},[eng.group]);
 
-    const sb=RIG.startBtn(ctx,-1.0,2.35,.75);root.add(sb.group);
+    // 启动按钮在驾驶室的仪表台上
+    const sb=RIG.startBtn(ctx,cabRig.btnAt.x,cabRig.btnAt.y,cabRig.btnAt.z,.6);cabRig.group.add(sb.group);
     defPart('start',{name:'启动按钮',isStart:true,
       text:'按一下，装载机就开始铲啦！',
       more:'司机上车先热一下车，油温上来了油缸才顺。'},[sb.group]);

@@ -82,8 +82,10 @@ SCENES.forklift=Object.assign({
       const s2=roundedBox(.5,.12,.5,.04,matte(0x2b3038));seatG.add(s2);
       const bk=roundedBox(.5,.55,.12,.04,matte(0x2b3038));bk.position.set(-.28,.32,0);seatG.add(bk);
       const wh=mm(new THREE.TorusGeometry(.16,.03,8,18),dark(0x262b35));
-      wh.position.set(.42,.45,0);wh.rotation.y=Math.PI/2;wh.rotation.z=.6;seatG.add(wh);
-      seatG.position.set(-1.0,1.28,0);root.add(seatG);
+      wh.position.set(.32,.45,0);wh.rotation.y=Math.PI/2;wh.rotation.z=.6;seatG.add(wh);
+      // 司机坐在座椅上，脚正好踩在车身顶面（座椅抬高到 1.46 才踩得着）
+      const drvF=RIG.driver(ctx,{s:.8,hat:0xF2B233,shirt:0x3A7BD5});drvF.position.set(0,.06,0);seatG.add(drvF);
+      seatG.position.set(-1.0,1.46,0);root.add(seatG);
     }
     defPart('seat',{name:'座椅',outside:true,
       text:'司机坐在这儿，头顶有个护顶架。',
@@ -186,7 +188,8 @@ SCENES.forklift=Object.assign({
       more:'室内用的叉车很多是电动的，用大电瓶。室外的柴油叉车力气更大，能叉更重的货。',
       action(){S.engUntil=now()+3200;}},[eng.group]);
 
-    const sb=RIG.startBtn(ctx,-.55,1.75,.5);root.add(sb.group);
+    // 叉车没有仪表台，按钮就装在方向盘前面的车身顶面上
+    const sb=RIG.startBtn(ctx,-.35,1.2,.35,.6);root.add(sb.group);
     defPart('start',{name:'启动按钮',isStart:true,
       text:'按一下，叉车就开始干活啦！',
       more:'叉车开得慢，但一天能搬几百个托盘。'},[sb.group]);

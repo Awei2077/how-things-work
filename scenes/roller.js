@@ -174,17 +174,11 @@ SCENES.roller=Object.assign({
       more:'发动机带动液压泵，一路油送到后轮的马达让车前进，另一路送到滚筒里的马达让偏心块高速转。',
       action(){R.engUntil=now()+3200;}},[engine]);
 
-    const startG=new THREE.Group();
-    {
-      const base=mm(new THREE.CylinderGeometry(.13,.13,.06,18),dark(0x262b35));startG.add(base);
-      const btn=mm(new THREE.CylinderGeometry(.1,.1,.08,18),
-        new THREE.MeshStandardMaterial({color:0x35C46B,emissive:0x35C46B,emissiveIntensity:.35,roughness:.4}));
-      btn.position.y=.05;btn.userData.keepEm=true;startG.add(btn);
-      startG.position.set(-.3,1.9,.55);root.add(startG);
-    }
+    /* 启动按钮：在驾驶室的仪表台上，司机伸手就够得着 */
+    const sb=RIG.startBtn(ctx,cabRig.btnAt.x,cabRig.btnAt.y,cabRig.btnAt.z,.55);cabRig.group.add(sb.group);
     defPart('start',{name:'启动按钮',isStart:true,
       text:'按一下，压路机就开始压啦！',
-      more:'压路机走得比人还慢，但一遍一遍压过去，路面就结实了。'},[startG]);
+      more:'压路机走得比人还慢，但一遍一遍压过去，路面就结实了。'},[sb.group]);
 
     function update(dt){
       const t=now(),drv=api.S.drive,ee=api.ee;
@@ -224,7 +218,7 @@ SCENES.roller=Object.assign({
         d.visible=spraying;d.scale.setScalar(spraying?(1-u)*1.1:0);
       }
       engine.children[2].rotation.x+=dt*R.eng*20;
-      startG.children[1].material.emissiveIntensity=.35+(drv?.5:0)*(Math.sin(t/220)*.5+.5);
+      sb.pulse(drv,t);
     }
 
     const chain=[

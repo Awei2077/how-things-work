@@ -194,7 +194,8 @@ SCENES.towercrane=Object.assign({
     resetLoads();
     const _w=new THREE.Vector3();
 
-    const sb=RIG.startBtn(ctx,1.6,1.1,0);root.add(sb.group);
+    // 启动按钮在驾驶室的仪表台上
+    const sb=RIG.startBtn(ctx,cabRig.btnAt.x,cabRig.btnAt.y,cabRig.btnAt.z,.5);cabRig.group.add(sb.group);
     defPart('start',{name:'启动按钮',isStart:true,
       text:'按一下，塔吊就开始吊啦！',
       more:'塔吊用的是电，工地上专门给它拉一根很粗的电缆。'},[sb.group]);

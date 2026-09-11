@@ -146,13 +146,15 @@ SCENES.sweeper=Object.assign({
       action(){S.sprayUntil=now()+3200;}},[sprayG]);
 
     const eng=RIG.engine(ctx,{scale:.85});
-    place(eng.group,V(2.2,.85,0),V(3.2,1.7,0));
+    // 发动机在驾驶室地板下面，看里面才看得见
+    place(eng.group,V(2.2,.45,0),V(3.2,1.7,0));
     defPart('engine',{name:'发动机',
       text:'发动机既让车走，也带着风机和刷子转。',
       more:'洒水车上有两套动力：一套推车前进，一套专门带风机、水泵和刷子。所以它开得慢，声音却很大。',
       action(){S.engUntil=now()+3200;}},[eng.group]);
 
-    const sb=RIG.startBtn(ctx,2.2,2.35,.9);root.add(sb.group);
+    // 启动按钮在驾驶室的仪表台上
+    const sb=RIG.startBtn(ctx,tk.btnAt.x,tk.btnAt.y,tk.btnAt.z,.6);tk.cab.add(sb.group);
     defPart('start',{name:'启动按钮',isStart:true,
       text:'按一下，洒水车就开始扫啦！',
       more:'天还没亮它就出门了，等大家起床的时候马路已经干干净净。'},[sb.group]);

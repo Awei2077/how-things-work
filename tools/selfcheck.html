@@ -27,7 +27,8 @@ async function runScene(id){
   const perf=w.performance,RN=perf.now.bind(perf),RT=w.setTimeout,RC=w.clearTimeout;
   let FT=RN();const Q=[];let qid=1;
   perf.now=()=>FT;w.setTimeout=(fn,ms)=>{const id=qid++;Q.push({id,at:FT+(ms||0),fn});return id;};w.clearTimeout=id=>{const i=Q.findIndex(q=>q.id===id);if(i>=0)Q.splice(i,1);};
-  const step=async n=>{for(let i=0;i<n;i++){FT+=33;D.cam.last=FT+1e7;D.cam.focus=null;Q.sort((a,b)=>a.at-b.at);
+  let keepFocus=false;
+  const step=async n=>{for(let i=0;i<n;i++){FT+=33;D.cam.last=FT+1e7;if(!keepFocus)D.cam.focus=null;Q.sort((a,b)=>a.at-b.at);
     while(Q.length&&Q[0].at<=FT){const q=Q.shift();try{q.fn();}catch(e){r.errors.push('timer: '+String(e).slice(0,120));}}
     try{D.frame();}catch(e){r.errors.push('frame: '+String(e).slice(0,120));}for(let k=0;k<4;k++)await Promise.resolve();}};
   const setCam=(th,ph)=>{D.cam.theta=D.cam.tTheta=th;D.cam.phi=D.cam.tPhi=ph;};
@@ -36,6 +37,26 @@ async function runScene(id){
     for(const m of p.meshes){if(m.userData.noHit||!m.visible)continue;m.updateWorldMatrix(true,false);box.expandByObject(m);}
     if(!box.isEmpty()&&box.min.y<-.06)out.push(pid+' y='+box.min.y.toFixed(2));}return out;};
   const shotAt=(sheet,label,th,ph)=>{setCam(th,ph);for(let i=0;i<2;i++){FT+=1;D.frame();}sheet.add(canvas,label);};
+  // ?mode=cab：只看驾驶室——镜头对准 cab 零件，外观三个角度 + 看里面三个角度，检查司机/座椅/按钮有没有穿模
+  if(new URLSearchParams(location.search).get('mode')==='cab'){
+    const want=new URLSearchParams(location.search).get('part');
+    const pid=(want&&D.PARTS[want])?want:(D.PARTS['cab']?'cab':(D.PARTS['seat']?'seat':'start'));
+    const S=makeSheet(3,2,520,390);
+    await step(30);keepFocus=true;D.focusPart(pid);await step(80);
+    shotAt(S,id+' 驾驶室 默认',home[0],home[1]);
+    shotAt(S,id+' 驾驶室 正前偏上',1.2,.95);
+    shotAt(S,id+' 驾驶室 侧',0,1.2);
+    D.setMode('xray');D.focusPart(pid);await step(90);
+    shotAt(S,id+' 看里面 默认',home[0],home[1]);
+    shotAt(S,id+' 看里面 正前偏上',1.2,.95);
+    shotAt(S,id+' 看里面 侧',0,1.2);
+    D.setMode('whole');await step(10);
+    S.c.className='sheet';document.body.appendChild(S.c);
+    await post('CAB_'+id,S.c).catch(()=>{});
+    perf.now=RN;w.setTimeout=RT;w.clearTimeout=RC;
+    try{const gl=canvas.getContext('webgl2')||canvas.getContext('webgl');gl&&gl.getExtension('WEBGL_lose_context').loseContext();}catch(e){}
+    f.src='about:blank';await sleep(150);return;
+  }
   const A=makeSheet(3,2,520,390);
   await step(60);
   shotAt(A,id+' 默认视角',home[0],home[1]);

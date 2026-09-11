@@ -155,13 +155,15 @@ SCENES.towtruck=Object.assign({
       more:'清障车在路边作业时最危险的就是后面来车。黄灯闪起来，加上后面摆的三角牌，才安全。'},[lightG]);
 
     const eng=RIG.engine(ctx,{scale:.9});
-    place(eng.group,V(2.3,.9,0),V(3.3,1.8,0));
+    // 发动机在驾驶室地板下面，看里面才看得见
+    place(eng.group,V(2.3,.45,0),V(3.3,1.8,0));
     defPart('engine',{name:'发动机',
       text:'发动机带着油泵，托臂才举得起来。',
       more:'抬起一辆车要好几吨的力气，全靠液压。发动机一停，托臂就一动不动了。',
       action(){S.engUntil=now()+3200;}},[eng.group]);
 
-    const sb=RIG.startBtn(ctx,2.3,2.6,.9);root.add(sb.group);
+    // 启动按钮在驾驶室的仪表台上
+    const sb=RIG.startBtn(ctx,tk.btnAt.x,tk.btnAt.y,tk.btnAt.z,.6);tk.cab.add(sb.group);
     defPart('start',{name:'启动按钮',isStart:true,
       text:'按一下，清障车就开始干活啦！',
       more:'车坏在路上别慌，站到护栏外面等清障车来。'},[sb.group]);
