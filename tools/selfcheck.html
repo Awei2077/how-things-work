@@ -45,8 +45,11 @@ async function runScene(id){
   r.idleUnder=under();
   setCam(home[0],home[1]);
   doc.querySelector('#go').click();await step(2);r.drive=D.S.drive;
-  const B=makeSheet(4,2,390,292),C=makeSheet(4,2,390,292);
-  const TS=[1,2,3.5,5,6.5,8,10,12];let done=2;
+  // 地址里带 ?t=14,16,18 可以自定义拍照时刻（秒），看更长的动作
+  const qs=new URLSearchParams(location.search).get('t');
+  const TS=qs?qs.split(',').map(Number):[1,2,3.5,5,6.5,8,10,12];
+  const cols=Math.ceil(TS.length/2);
+  const B=makeSheet(cols,2,390,292),C=makeSheet(cols,2,390,292);let done=2;
   for(const ts of TS){const target=Math.round(ts*30);await step(target-done);done=target;
     shotAt(B,id+' '+ts+'s',home[0],home[1]);r.cam.push(ts+'s r='+D.cam.r.toFixed(2)+' z='+D.cam.zoom.toFixed(2)+' tgt=('+D.cam.target.x.toFixed(2)+','+D.cam.target.y.toFixed(2)+') root.x='+D.root.position.x.toFixed(2)+' th='+D.cam.theta.toFixed(2));shotAt(C,id+' '+ts+'s 侧',0,1.3);
     const u=under();if(u.length)r.under.push(ts+'s: '+u.join(','));}

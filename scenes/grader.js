@@ -41,7 +41,8 @@ SCENES.grader=Object.assign({
       b.position.set(-14+Math.random()*28,.06,(Math.random()-.5)*3.2);scene.add(b);bumps.push(b);
     }
     return {occluders:s.occluders,update(){
-      const front=S.drive+.2;
+      // 刮平的路一直是平的，倒车也不会变回去
+      if(S.front==null)S.front=-13;S.front=Math.max(S.front,S.drive+.2);const front=S.front;
       smooth.scale.x=Math.max(.001,front+13);
       smooth.position.x=(front-13)/2;
       ridge.scale.x=Math.max(.001,(front+13)*.98);
@@ -193,7 +194,7 @@ SCENES.grader=Object.assign({
     ctx.linearize();
     return {update,chain,camX(){return S.drive*.85*(1-api.ee);},
       onStop(){R.stop();S.engineOn=false;for(const k of KEYS)S[k+'T']=0;},
-      onStart(){},onDone(){S.engineOn=false;}};
+      onStart(){S.front=-13;},onDone(){S.engineOn=false;}};
   }
 },RIG.SKY.site);
 })();

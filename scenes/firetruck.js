@@ -48,8 +48,10 @@ SCENES.firetruck=Object.assign({
         new THREE.MeshStandardMaterial({color:0xFF7A2F,emissive:0xFF5A1F,emissiveIntensity:1.2,roughness:.5}));
       f.userData.keepEm=true;f.castShadow=false;f.userData.u=i/8;scene.add(f);fires.push(f);
     }
-    return {occluders:s.occluders,update(){
-      const t=api.now(),alive=1-S.water;
+    return {occluders:s.occluders,update(dt){
+      // 火被水浇过就灭了，不会再自己烧起来；再按一次「开始」才重新点着
+      S.out=Math.min(1,(S.out||0)+(dt||0)*(S.water>.3?.7:0));
+      const t=api.now(),alive=1-S.out;
       for(const f of fires){
         const u=f.userData.u;
         f.position.set(-5.4+Math.sin(u*9)*.4,3.6+Math.cos(u*7)*1.1,(u-.5)*2.2);
@@ -265,7 +267,7 @@ SCENES.firetruck=Object.assign({
     const chain=[
       {t:'按一下，警灯闪起来，消防车出动！',part:'start',on(){}},
       {t:'发动机转起来，一路开到着火的楼下。',part:'engine',inner:true,
-        on(){S.engineOn=true;api.sfx.loop('engine');R.start(RESCUE,2);}},
+        on(){S.engineOn=true;api.sfx.loop('engine');R.start(RESCUE,1);}},
       {t:'先撑好四条支腿，车才站得稳。',part:'legs'},
       {t:'云梯转过去、抬起来、一节节伸出去。',part:'ladder'},
       {t:'水泵把水加压，顺着管子送到梯子顶上。',part:'pump',inner:true},
@@ -275,7 +277,7 @@ SCENES.firetruck=Object.assign({
     ctx.linearize();
     return {update,chain,
       onStop(){R.stop();S.engineOn=false;for(const k of KEYS)S[k+'T']=0;},
-      onStart(){},onDone(){S.engineOn=false;}};
+      onStart(){S.out=0;},onDone(){S.engineOn=false;}};
   }
 },RIG.SKY.street);
 })();

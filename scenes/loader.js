@@ -1,25 +1,31 @@
 /* 场景：装载机（铲车）。+x 车头，前面一个大铲斗。 */
 window.SCENES=window.SCENES||{};
 (function(){
-const S={lift:0,liftT:0,tilt:0,tiltT:0,drive:0,driveT:0,load:0,loadT:0,eng:0,
-  engineOn:false,engUntil:0,armUntil:0,bkUntil:0};
+const S={lift:0,liftT:0,tilt:0,tiltT:0,drive:0,driveT:0,load:0,loadT:0,turn:0,turnT:0,eng:0,
+  scoops:0,mound:0,engineOn:false,engUntil:0,armUntil:0,bkUntil:0};
 let api=null;const now=()=>api.now();window.__LD=S;
-const KEYS=['lift','tilt','drive','load'];
+const KEYS=['lift','tilt','drive','load','turn'];
 /* tilt：正 = 铲斗往回翻兜住土，负 = 往前倒出来 */
+/* 一斗：冲进土堆兜住 → 退出来原地掉头 → 开到卡车边举高倒进去 → 倒车、转回来 */
 const SCOOP=[
   {d:1300,to:{drive:1.6,tilt:0,lift:0}},
   {d:600 ,to:{load:1,tilt:.8}},
-  {d:1200,to:{lift:1}},
-  {d:1100,to:{drive:-.3}},
+  {d:900 ,to:{lift:.35}},
+  {d:1200,to:{drive:0}},
+  {d:1400,to:{turn:1}},
+  {d:1500,to:{drive:-3.0,lift:1}},
   {d:900 ,to:{tilt:-.9}},
   {d:400 ,to:{load:0}},
-  {d:900 ,to:{tilt:.15,lift:0,drive:0}},
+  {d:800 ,to:{tilt:.15,lift:.35}},
+  {d:1300,to:{drive:0}},
+  {d:1400,to:{turn:0}},
+  {d:600 ,to:{lift:0}},
 ];
 let R=null;
 
 SCENES.loader=Object.assign({
   id:'loader',title:'装载机',subtitle:'拖一拖转圈 · 点零件听听',night:false,
-  fit:{w:9.5,h:5.4,ty:1.5,tyEx:2.5,rEx:1.3,cx:.6},cameraStart:{theta:.95,phi:1.18},
+  fit:{w:13,h:5.4,ty:1.5,tyEx:2.5,rEx:1.3,cx:-.45},cameraStart:{theta:.95,phi:1.18},
   order:['bucket','arm','cyl','wheels','cab','engine','body','start'],
   go:{on:'开始铲',off:'停下',stopSaid:'停下啦',stopHint:'再按一下，再铲一斗！',
     done:'铲好啦！满满一斗全倒进去了。',doneHintXray:'看，油缸一伸一缩把大臂顶起来。点「停下」再铲一次。',
@@ -35,8 +41,27 @@ SCENES.loader=Object.assign({
     const s=RIG.site(ctx,{kind:'dirt',seed:333,fenceZ:9});
     const pile=mm(new THREE.SphereGeometry(1.3,16,12),flat(0xA8825A));
     pile.scale.set(1.05,.92,1.0);pile.position.set(4.6,-.15,0);pile.castShadow=true;scene.add(pile);
-    return {occluders:s.occluders,update(){
-      pile.scale.set(1.05*(1-S.load*.14),.92*(1-S.load*.2),1.0*(1-S.load*.14));
+    // 后面停一辆自卸卡车，横着停，车斗对着装载机；装载机掉头过来把土倒进去
+    const tk=RIG.truck(Object.assign({},ctx,{root:scene}),{color:0x3E7BC6,cabX:2.1,wheelR:.5,halfZ:.95,
+      frameFrom:-3.4,frameTo:3.0,axles:[{x:2.05},{x:-1.85,dual:true}]});
+    {
+      const {roundedBox,plastic}=ctx;
+      const bed=new THREE.Group();
+      const floor=roundedBox(4.4,.14,2.1,.05,plastic(0x3E7BC6));floor.position.set(-.5,1.0,0);bed.add(floor);
+      for(const z of [1,-1]){const side=roundedBox(4.4,.9,.1,.04,plastic(0x3E7BC6));side.position.set(-.5,1.5,z*1.0);bed.add(side);}
+      for(const x of [1.65,-2.65]){const end=roundedBox(.1,.9,2.1,.04,plastic(0x3E7BC6));end.position.set(x,1.5,0);bed.add(end);}
+      bed.traverse(o=>{if(o.isMesh)o.castShadow=true;});tk.group.add(bed);
+    }
+    tk.group.position.set(-5.8,0,0);tk.group.rotation.y=Math.PI/2;
+    // 车斗里的土：每倒一斗就多一堆
+    const mound=mm(new THREE.SphereGeometry(1,14,10),flat(0xA8825A));mound.castShadow=true;tk.group.add(mound);
+    return {occluders:s.occluders,update(dt){
+      // 土堆铲一斗少一块，不会自己长回来（S.scoops 在倒土时 +1）
+      const k=Math.min(.9,.14*(S.scoops+S.load));
+      pile.scale.set(1.05*(1-k),.92*(1-k*1.4),1.0*(1-k));
+      S.mound+=(S.scoops-S.mound)*Math.min(1,(dt||0)*3);
+      mound.visible=S.mound>.05;
+      mound.position.set(-.5,1.1,0);mound.scale.set(1.5,.18+.32*S.mound,.85);
     }};
   },
 
@@ -154,7 +179,11 @@ SCENES.loader=Object.assign({
 
       const moved=S.drive-(update._p||0);update._p=S.drive;
       root.position.x=S.drive;
-      for(const w of ws)w.spin.rotation.z-=moved/w.R;
+      // 原地掉头：整台车绕自己转半圈，掉头后往 -x 开才是前进，轮子也要跟着反着算
+      root.rotation.y=Math.PI*S.turn;
+      for(const w of ws)w.spin.rotation.z-=moved*(S.turn>.5?-1:1)/w.R;
+      // 倒土：铲斗里的土清空的那一刻，算一斗进了卡车
+      if((update._load||0)>.5&&S.load<=.5&&S.turn>.5)S.scoops++;update._load=S.load;
 
       /* 铲斗角度要在大臂的坐标系里算：bkPivot 是 armPivot 的子节点，两个旋转会叠加。
          目标是让铲斗的绝对角度停在 -.02（刃口刚好贴地），所以要先把大臂的角度补回来。 */
@@ -176,17 +205,18 @@ SCENES.loader=Object.assign({
     const chain=[
       {t:'按一下启动按钮。',part:'start',on(){}},
       {t:'发动机转起来，油泵有劲了。',part:'engine',inner:true,
-        on(){S.engineOn=true;api.sfx.loop('engine');R.start(SCOOP,3);}},
+        on(){S.engineOn=true;api.sfx.loop('engine');R.start(SCOOP,2);}},
       {t:'低头冲进土堆，铲斗插进去。',part:'bucket'},
       {t:'铲斗往回一翻，土就兜住了。',part:'bucket'},
       {t:'油缸把大臂顶起来，举得高高的。',part:'cyl',inner:true},
+      {t:'原地掉个头，开到卡车旁边。',part:'wheels'},
       {t:'倒进卡车里，再回头铲下一斗！',part:'arm'},
     ];
 
     ctx.linearize();
     return {update,chain,camX(){return S.drive*.85*(1-api.ee);},
       onStop(){R.stop();S.engineOn=false;for(const k of KEYS)S[k+'T']=0;},
-      onStart(){},onDone(){S.engineOn=false;}};
+      onStart(){S.scoops=0;S.mound=0;},onDone(){S.engineOn=false;}};
   }
 },RIG.SKY.site);
 })();

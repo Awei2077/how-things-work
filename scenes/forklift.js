@@ -1,30 +1,42 @@
 /* 场景：叉车。前面一副门架，货叉插进托盘把货举起来。 */
 window.SCENES=window.SCENES||{};
 (function(){
-const S={fork:0,forkT:0,drive:0,driveT:0,tilt:0,tiltT:0,load:0,loadT:0,eng:0,
+const S={fork:0,forkT:0,drive:0,driveT:0,tilt:0,tiltT:0,load:0,loadT:0,eng:0,phase:0,
   engineOn:false,engUntil:0,forkUntil:0,driveUntil:0};
 let api=null;const now=()=>api.now();window.__FL=S;
 const KEYS=['fork','drive','tilt','load'];
-const JOB=[
-  {d:1200,to:{drive:.85}},
+/* 上半场：开到托盘前，叉起来送到货堆顶上放好，退出来 */
+const UP=[
+  {d:1200,to:{drive:.70}},
   {d:400 ,to:{load:1}},
-  {d:600 ,to:{tilt:1}},
-  {d:1300,to:{fork:1}},
-  {d:1300,to:{drive:-1.4}},
-  {d:1300,to:{drive:.85}},
-  {d:900 ,to:{fork:0}},
-  {d:500 ,to:{tilt:0}},
+  {d:600 ,to:{tilt:1,fork:.1}},
+  {d:1800,to:{drive:4.55}},
+  {d:1300,to:{fork:.5}},
+  {d:400 ,to:{tilt:0}},
   {d:300 ,to:{load:0}},
-  {d:900 ,to:{drive:0}},
+  {d:900 ,to:{drive:3.2}},
+  {d:800 ,to:{fork:0}},
+];
+/* 下半场：再把它从货堆上叉下来，送回原地 */
+const DOWN=[
+  {d:900 ,to:{fork:.5}},
+  {d:900 ,to:{drive:4.55}},
+  {d:300 ,to:{load:1}},
+  {d:500 ,to:{fork:.62,tilt:1}},
+  {d:1800,to:{drive:.70}},
+  {d:1200,to:{fork:0}},
+  {d:400 ,to:{tilt:0}},
+  {d:300 ,to:{load:0}},
+  {d:1000,to:{drive:0}},
 ];
 let R=null;
 
 SCENES.forklift=Object.assign({
   id:'forklift',title:'叉车',subtitle:'拖一拖转圈 · 点零件听听',night:false,
-  fit:{w:7,h:5.6,ty:1.4,tyEx:2.4,rEx:1.3,cx:.3},cameraStart:{theta:.95,phi:1.18},
+  fit:{w:9,h:5.6,ty:1.4,tyEx:2.4,rEx:1.3,cx:1.8},cameraStart:{theta:.95,phi:1.18},
   order:['fork','mast','cyl','cw','wheels','seat','frame','engine','start'],
   go:{on:'开始叉',off:'停下',stopSaid:'停下啦',stopHint:'再按一下，再叉一次！',
-    done:'叉好啦！货物稳稳举起来了。',doneHintXray:'看，门架里的链条把货叉往上拉。点「停下」再叉一次。',
+    done:'叉好啦！货送上去，又稳稳放回来。',doneHintXray:'看，门架里的链条把货叉往上拉。点「停下」再叉一次。',
     doneHint:'点「看里面」，看看货叉是怎么升上去的。'},
   intro:{icon:'fork',name:'叉车',text:'点一点叉车的零件，听听它叫什么。按「开始叉」看它怎么把货举起来。'},
   poster:{title:'叉车为什么屁股那么重',sub:'前面举货，后面就得压住',
@@ -35,12 +47,13 @@ SCENES.forklift=Object.assign({
     api=_api;
     const {THREE,scene,roundedBox,matte,plastic}=ctx;
     const s=RIG.site(ctx,{kind:'road',seed:1717,fence:false,cones:[[-4.2,2.6],[-5.4,-2.2]]});
+    // 货堆：正前方摞两个箱子，叉车把托盘送到它顶上（顶面 y=1.5），再叉下来
     const stack=new THREE.Group();
-    for(let i=0;i<3;i++){
-      const b=roundedBox(1.0,.7,1.0,.05,matte([0xC9A227,0xB05A4A,0x4A6E8A][i]));
+    for(let i=0;i<2;i++){
+      const b=roundedBox(1.0,.7,1.0,.05,matte([0xB05A4A,0x4A6E8A][i]));
       b.position.set(0,.4+i*.75,0);stack.add(b);
     }
-    stack.position.set(3.6,0,-2.2);stack.traverse(o=>{if(o.isMesh)o.castShadow=true;});scene.add(stack);
+    stack.position.set(5.8,0,0);stack.traverse(o=>{if(o.isMesh)o.castShadow=true;});scene.add(stack);
     return {occluders:s.occluders,update(){}};
   },
 
@@ -134,12 +147,13 @@ SCENES.forklift=Object.assign({
     /* 货叉 */
     const forkG=new THREE.Group();
     {
-      const back=roundedBox(.1,.7,1.1,.03,steel(0x8a929e));back.position.set(.1,.35,0);forkG.add(back);
+      // 叉齿贴着地面（y≈0），正好插进托盘的板条之间
+      const back=roundedBox(.1,.7,1.1,.03,steel(0x8a929e));back.position.set(.1,.24,0);forkG.add(back);
       for(const sz of [1,-1]){
         const arm=roundedBox(1.1,.08,.16,.02,steel(0x9aa2ad));
-        arm.position.set(.68,.04,sz*.32);forkG.add(arm);
-        const up=roundedBox(.1,.6,.16,.02,steel(0x9aa2ad));
-        up.position.set(.14,.3,sz*.32);forkG.add(up);
+        arm.position.set(.68,-.11,sz*.2);forkG.add(arm);
+        const up=roundedBox(.1,.5,.16,.02,steel(0x9aa2ad));
+        up.position.set(.14,.14,sz*.2);forkG.add(up);
       }
       inner.add(forkG);
     }
@@ -148,16 +162,22 @@ SCENES.forklift=Object.assign({
       more:'两根叉子的间距能调，对准托盘下面那两个洞插进去。全世界的托盘尺寸都差不多，所以哪台叉车都能叉。',
       action(){S.forkUntil=now()+3200;}},[forkG]);
 
-    /* 托盘和货 */
+    /* 托盘和货：原点放在托盘后沿（叉子插进来的那一边），跟着叉子走时角度才对得上。
+       托盘不属于叉车，放在场景里而不是 root 里——叉车开走，它才会留在原地。 */
     const palletG=new THREE.Group();
     {
-      const p=roundedBox(1.1,.12,1.1,.03,matte(0xB8895A));palletG.add(p);
+      const p=roundedBox(1.1,.12,1.1,.03,matte(0xB8895A));p.position.x=.7;palletG.add(p);
       for(const sz of [-.4,0,.4]){
-        const sl=roundedBox(1.1,.09,.16,.02,matte(0xA07B4A));sl.position.set(0,-.1,sz);palletG.add(sl);
+        const sl=roundedBox(1.1,.09,.16,.02,matte(0xA07B4A));sl.position.set(.7,-.1,sz);palletG.add(sl);
       }
-      const box=roundedBox(.8,.58,.8,.05,matte(0xC9A227));box.position.y=.35;palletG.add(box);
-      palletG.userData.noHit=true;root.add(palletG);
+      const box=roundedBox(.8,.58,.8,.05,matte(0xC9A227));box.position.set(.7,.35,0);palletG.add(box);
+      palletG.traverse(o=>{if(o.isMesh)o.castShadow=true;});
+      palletG.userData.noHit=true;ctx.scene.add(palletG);
     }
+    const HOME=new THREE.Vector3(1.25,.15,0);
+    const resetPallet=()=>{palletG.position.copy(HOME);palletG.rotation.z=0;};
+    resetPallet();
+    const _wp=new THREE.Vector3();
 
     const eng=RIG.engine(ctx,{scale:.7});
     place(eng.group,V(-1.5,.75,0),V(-2.6,1.7,0));
@@ -188,11 +208,13 @@ SCENES.forklift=Object.assign({
       mastPivot.position.set(.55+1.6*ee,.15+.7*ee,0);
       inner.position.y=1.5*S.fork;
       forkG.position.y=1.5*S.fork;
-      const wp=new THREE.Vector3();forkG.getWorldPosition(wp);
-      // 叉子插在托盘的板条之间：托盘随叉子走，放下时正好回到原位，不会跳
-      if(S.load>.4){palletG.position.set(wp.x+.55,wp.y-.01,wp.z);palletG.rotation.z=.13*S.tilt;}
-      else{palletG.position.set(1.95,.14,0);palletG.rotation.z=0;}
+      forkG.getWorldPosition(_wp);
+      // 挂上时托盘跟着叉子走；放下就留在当时的位置（货堆顶上或原地），不会自己跳回去
+      if(S.loadT>.5){palletG.position.copy(_wp);palletG.rotation.z=.13*S.tilt;}
       palletG.visible=ee<.3;
+      // 上半场送上货堆，跑完接着下半场叉回来
+      if(S.phase===1&&!R.running){S.phase=2;R.start(DOWN,1);}
+      else if(S.phase===2&&!R.running)S.phase=0;
       eng.spin(dt,S.eng);
       sb.pulse(drv,t);
     }
@@ -200,16 +222,17 @@ SCENES.forklift=Object.assign({
     const chain=[
       {t:'按一下启动按钮。',part:'start',on(){}},
       {t:'发动机转起来，油泵有劲了。',part:'engine',inner:true,
-        on(){S.engineOn=true;api.sfx.loop('engine');R.start(JOB,2);}},
+        on(){S.engineOn=true;api.sfx.loop('engine');S.phase=1;R.start(UP,1);}},
       {t:'开过去，两根叉子插进托盘底下。',part:'fork'},
       {t:'门架微微后仰，货就不会滑下来。',part:'mast'},
-      {t:'油缸一伸，货举起来，倒车走人！',part:'cyl'},
+      {t:'油缸一伸，货举起来，送到货堆顶上！',part:'cyl'},
+      {t:'放好了，再把它叉下来，送回原地。',part:'fork'},
     ];
 
     ctx.linearize();
     return {update,chain,camX(){return S.drive*.85*(1-api.ee);},
-      onStop(){R.stop();S.engineOn=false;for(const k of KEYS)S[k+'T']=0;},
-      onStart(){},onDone(){S.engineOn=false;}};
+      onStop(){R.stop();S.engineOn=false;S.phase=0;for(const k of KEYS)S[k+'T']=0;resetPallet();},
+      onStart(){resetPallet();},onDone(){S.engineOn=false;}};
   }
 },RIG.SKY.street);
 })();

@@ -85,8 +85,11 @@ SCENES.dozer={
       g.traverse(o=>{if(o.isMesh)o.castShadow=true;});
       g.scale.setScalar(1+rnd()*.6);g.position.set(Math.cos(a)*R,0,Math.sin(a)*R);scene.add(g);reg(g);}
     return {occluders:occ,update(){
+      // 土堆被推到哪就留在哪，推土机倒回去它不会跟着回来；铲刀落下（blade<.35）顶到它才推着走
       const k=D.pileT;
-      pile.position.set(2.55+D.drive,0,0);
+      if(D.pileX==null)D.pileX=2.55;
+      if(D.blade<.35)D.pileX=Math.max(D.pileX,2.55+D.drive);
+      pile.position.set(D.pileX,0,0);
       pile.scale.set(1.6*(1+k*.45),.34*(1+k*1.1),1.5*(1+k*.3));
       pile.visible=k>.02;
     }};
@@ -274,7 +277,7 @@ SCENES.dozer={
       const moved=D.drive-prevDrive;
 
       // 铲刀落地时往前推，土堆才长大；抬起来或者倒车都不算
-      if(moved>0&&D.blade<.35)D.pileT=Math.min(1,D.pileT+moved*.32);
+      if(moved>0&&D.blade<.35&&2.55+D.drive>=(D.pileX==null?2.55:D.pileX)-.3)D.pileT=Math.min(1,D.pileT+moved*.32);
 
       const ripOn=t<D.ripUntil;
       D.ripperT=ripOn?1:0;
@@ -329,8 +332,8 @@ SCENES.dozer={
     ctx.linearize();
     return {update,chain,
       camX(){return D.drive*.8*(1-api.ee);},
-      onStop(){D.seq=null;D.reps=0;D.startOn=D.engineOn=false;D.bladeT=0;D.driveT=0;D.pileT=0;},
-      onStart(){D.pileT=0;},
+      onStop(){D.seq=null;D.reps=0;D.startOn=D.engineOn=false;D.bladeT=0;D.driveT=0;D.pileT=0;D.pileX=2.55;},
+      onStart(){D.pileT=0;D.pileX=2.55;},
       onDone(){D.engineOn=false;}};
   }
 };

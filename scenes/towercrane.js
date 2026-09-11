@@ -1,19 +1,33 @@
 /* 场景：塔吊。竖着的塔身 + 水平长臂，小车沿臂跑，钩子上下。 */
 window.SCENES=window.SCENES||{};
 (function(){
-const S={slew:0,slewT:0,troll:0,trollT:0,hook:0,hookT:0,lifted:0,liftedT:0,
+const S={slew:0,slewT:0,troll:0,trollT:0,hook:0,hookT:0,lifted:0,liftedT:0,phase:0,round:1,
   seq:null,engineOn:false,slewUntil:0,trollUntil:0,hookUntil:0};
 let api=null;const now=()=>api.now();window.__TC=S;
 const KEYS=['slew','troll','hook','lifted'];
-const JOB=[
-  {d:1300,to:{troll:1,hook:1}},
-  {d:500 ,to:{lifted:1}},
+/* 楼在 (-7.5,1.5)，离塔 7.65：slew=1 时长臂转过去 169°，小车 .665 正好在楼顶正上方。
+   hook=1 钩子落到地面（塔高 11.4），hook=.443 落到楼顶（板面 5.8）。 */
+const JOB1=[
+  {d:1100,to:{troll:.85}},
+  {d:1300,to:{hook:1}},
+  {d:400 ,to:{lifted:1}},
   {d:1300,to:{hook:.15}},
-  {d:1800,to:{slew:1}},
-  {d:1100,to:{troll:.35}},
-  {d:1200,to:{hook:.9}},
-  {d:400 ,to:{lifted:0}},
-  {d:1200,to:{hook:.15,slew:0,troll:1}},
+  {d:2200,to:{slew:1,troll:.665}},
+  {d:1100,to:{hook:.443}},
+  {d:300 ,to:{lifted:0}},
+  {d:900 ,to:{hook:.15}},
+  {d:2000,to:{slew:0,troll:.695}},
+];
+/* 第二捆：料场里面那捆，放到楼顶旁边一点 */
+const JOB2=[
+  {d:1300,to:{hook:1}},
+  {d:400 ,to:{lifted:1}},
+  {d:1300,to:{hook:.15}},
+  {d:2200,to:{slew:.93,troll:.665}},
+  {d:1100,to:{hook:.443}},
+  {d:300 ,to:{lifted:0}},
+  {d:900 ,to:{hook:.15}},
+  {d:2000,to:{slew:0,troll:.3}},
 ];
 let R=null;
 
@@ -165,13 +179,20 @@ SCENES.towercrane=Object.assign({
       more:'钢丝绳从卷扬机出发，绕过臂尖的滑轮，再绕过小车的滑轮，最后挂着钩子。绕的圈数越多，吊得越重。',
       action(){S.hookUntil=now()+3200;}},[hookG]);
 
-    /* 被吊的材料 */
-    const loadG=new THREE.Group();
-    for(let i=0;i<4;i++){
-      const b=roundedBox(1.5,.16,.5,.03,matte(0x9aa0a8));
-      b.position.set(0,-.1-i*.18,(i-1.5)*.14);loadG.add(b);
-    }
-    loadG.userData.noHit=true;turn.add(loadG);
+    /* 被吊的材料：两捆钢梁，一开始就摆在料场（长臂正下方），吊一捆少一捆，吊上楼就留在楼上 */
+    const YARD=[V(2.2+8.2*.85,.72,0),V(2.2+8.2*.695,.72,0)];
+    const loads=YARD.map(()=>{
+      const g=new THREE.Group();
+      for(let i=0;i<4;i++){
+        const b=roundedBox(1.5,.16,.5,.03,matte(0x9aa0a8));
+        b.position.set(0,-.1-i*.18,(i-1.5)*.14);g.add(b);
+      }
+      g.traverse(o=>{if(o.isMesh)o.castShadow=true;});
+      g.userData.noHit=true;root.add(g);return g;
+    });
+    const resetLoads=()=>{loads.forEach((g,i)=>{g.position.copy(YARD[i]);g.rotation.y=0;g.userData.st='ground';});};
+    resetLoads();
+    const _w=new THREE.Vector3();
 
     const sb=RIG.startBtn(ctx,1.6,1.1,0);root.add(sb.group);
     defPart('start',{name:'启动按钮',isStart:true,
@@ -185,18 +206,27 @@ SCENES.towercrane=Object.assign({
       if(t<S.trollUntil)S.trollT=.5+.5*Math.sin(t/800);
       if(t<S.hookUntil)S.hookT=.5+.5*Math.sin(t/700);
       if(!drv&&t>S.slewUntil&&t>S.trollUntil&&t>S.hookUntil)R.idle(dt,1.1);
-      R.ease(dt,2.6);
+      R.ease(dt,3.5);
 
-      turn.rotation.y=-1.35*S.slew;
+      turn.rotation.y=-2.944*S.slew;
       turn.position.y=11.4+2.5*ee;
       const tx=2.2+8.2*S.troll;
       trolG.position.set(tx,.55,0);
-      const hy=.35-6.0*S.hook;
+      const hy=.35-10.5*S.hook;
       hookG.position.set(tx,hy,0);
       rope.position.set(tx,(.35+hy)/2,0);
       rope.scale.y=Math.max(.05,.35-hy);
-      loadG.position.set(tx,hy-.55,0);
-      loadG.visible=S.lifted>.4&&ee<.25;
+      hookG.getWorldPosition(_w);
+      const L=loads[S.round-1];
+      for(const g of loads){
+        if(g===L&&S.liftedT>.5){g.userData.st='hooked';g.position.set(_w.x,_w.y-.55,_w.z);g.rotation.y=turn.rotation.y;}
+        // 松钩：材料留在当时的位置（楼上）
+        else if(g.userData.st==='hooked')g.userData.st='placed';
+        g.visible=ee<.25;
+      }
+      // 第一捆吊完接着吊第二捆
+      if(S.phase===1&&!R.running){S.phase=2;S.round=2;R.start(JOB2,1);}
+      else if(S.phase===2&&!R.running)S.phase=0;
       jibG.position.set(.9+3.0*ee,.2,0);
       cwG.position.set(-2.2*ee,0,0);
       capG.position.y=1.6*ee;
@@ -204,7 +234,7 @@ SCENES.towercrane=Object.assign({
     }
 
     const chain=[
-      {t:'按一下启动按钮。',part:'start',on(){R.start(JOB,2);}},
+      {t:'按一下启动按钮。',part:'start',on(){S.phase=1;S.round=1;resetLoads();R.start(JOB1,1);}},
       {t:'小车跑到外面，钩子放下来。',part:'trolley'},
       {t:'挂好材料，卷扬机收绳，吊起来。',part:'hook'},
       {t:'整个长臂转过去，对准要放的地方。',part:'jib'},
@@ -214,8 +244,8 @@ SCENES.towercrane=Object.assign({
 
     ctx.linearize();
     return {update,chain,
-      onStop(){R.stop();for(const k of KEYS)S[k+'T']=0;},
-      onStart(){},onDone(){}};
+      onStop(){R.stop();S.phase=0;for(const k of KEYS)S[k+'T']=0;resetLoads();},
+      onStart(){resetLoads();},onDone(){}};
   }
 },RIG.SKY.site,{
   // 塔吊太高，镜头离得远，工地默认的雾会把整台吊车吞掉，这一页把雾推远

@@ -3,23 +3,38 @@
 window.SCENES=window.SCENES||{};
 (function(){
 const C={leg:0,legT:0,pitch:0,pitchT:0,ext:0,extT:0,hook:0,hookT:0,slew:0,slewT:0,
-  eng:0,lifted:0,liftedT:0,seq:null,seqI:0,seqT:0,reps:0,engineOn:false,
+  eng:0,lifted:0,liftedT:0,phase:0,hookW:null,box:null,seq:null,seqI:0,seqT:0,reps:0,engineOn:false,
   engUntil:0,legUntil:0,boomUntil:0,hookUntil:0};
 let api=null;const now=()=>api.now();
 window.__CR=C;
 
-const LIFT=[
+/* 上半场：支腿、抬臂、伸臂，钩子落到箱子上（hook=1 正好到地面），吊起来转过去放下 */
+const LIFT_A=[
   {d:1400,to:{leg:1}},
   {d:1300,to:{pitch:1}},
   {d:1500,to:{ext:1}},
   {d:1200,to:{hook:1}},
-  {d:600 ,to:{lifted:1}},
-  {d:1400,to:{hook:0}},
+  {d:500 ,to:{lifted:1}},
+  {d:1400,to:{hook:.45}},
   {d:1600,to:{slew:1}},
-  {d:1100,to:{hook:.75}},
-  {d:500 ,to:{lifted:0}},
-  {d:1200,to:{hook:0,slew:0}},
+  {d:1200,to:{hook:1}},
+  {d:400 ,to:{lifted:0}},
+  {d:1000,to:{hook:.45}},
 ];
+/* 下半场：再把箱子吊回原地，收臂、收腿 */
+const LIFT_B=[
+  {d:1200,to:{hook:1}},
+  {d:500 ,to:{lifted:1}},
+  {d:1400,to:{hook:.45}},
+  {d:1600,to:{slew:0}},
+  {d:1200,to:{hook:1}},
+  {d:400 ,to:{lifted:0}},
+  {d:1000,to:{hook:0}},
+  {d:1400,to:{ext:0}},
+  {d:1300,to:{pitch:0}},
+  {d:1400,to:{leg:0}},
+];
+const BOX_HOME=[-6.68,.55,0];
 function startSeq(seq,reps){if(C.seq)return;C.seq=seq;C.reps=reps||1;C.seqI=-1;nextSeg();}
 function nextSeg(){
   C.seqI++;
@@ -51,14 +66,10 @@ SCENES.crane=Object.assign({
     for(const y of [-.3,.3]){const band=roundedBox(1.14,.09,1.14,.02,flat(0xE8C35A));band.position.y=y;box.add(band);}
     const eye=mm(new THREE.TorusGeometry(.1,.03,8,14),flat(0x9aa2ad));eye.position.y=.56;box.add(eye);
     box.castShadow=true;box.traverse(o=>{if(o.isMesh)o.castShadow=true;});
-    scene.add(box);
+    box.position.set(...BOX_HOME);scene.add(box);C.box=box;
     return {occluders:s.occluders,update(){
-      const a=-.55*C.slew;
-      const R=5.2+1.8*C.ext;
-      const gx=Math.cos(a)*-R, gz=Math.sin(a)*-R;
-      const hookY=4.6+2.2*C.pitch-3.4*C.hook;
-      box.position.set(gx,C.lifted>.5?Math.max(.55,hookY-.85):.55,gz);
-      box.rotation.y=a;
+      // 挂上钩就跟着钩子走；松钩就留在原地，不会自己滑回去
+      if(C.liftedT>.5&&C.hookW){box.position.set(C.hookW.x,C.hookW.y-.91,C.hookW.z);box.rotation.y=-.55*C.slew;}
     }};
   },
 
@@ -234,9 +245,14 @@ SCENES.crane=Object.assign({
       const tipL=new THREE.Vector3(-1.55-reach*Math.cos(ang),1.05+reach*Math.sin(ang),0);
       _t.set(tipL.x*Math.cos(sa),tipL.y,-tipL.x*Math.sin(sa));
       _t.x+=-.6;_t.y+=1.30;
-      const drop=.5+3.4*C.hook;
+      // 绳子要放得够长，hook=1 时钩子刚好落到地上箱子的吊环
+      const drop=.5+6.85*C.hook;
       hookG.position.set(_t.x,Math.max(.5,_t.y-drop),_t.z);
+      (C.hookW||(C.hookW=new THREE.Vector3())).copy(hookG.position);
       hookG.position.x+=1.2*ee;hookG.position.y+=1.6*ee;
+      // 上半场放到旁边，接着下半场吊回来
+      if(C.phase===1&&!C.seq){C.phase=2;startSeq(LIFT_B,1);}
+      else if(C.phase===2&&!C.seq)C.phase=0;
       const mid=_h.copy(_t).add(hookG.position).multiplyScalar(.5);
       const len=Math.max(.05,_t.y-hookG.position.y);
       rope.position.copy(mid);rope.scale.y=len;rope.visible=ee<.3;
@@ -251,7 +267,7 @@ SCENES.crane=Object.assign({
       {t:'按一下启动按钮。',part:'start',on(){}},
       {t:'发动机转起来，油泵有力气了。',part:'engine',inner:true,
         on(){C.engineOn=true;api.sfx.loop('engine');}},
-      {t:'先把四条支腿撑到地上，车才站得稳。',part:'legs',on(){startSeq(LIFT,2);}},
+      {t:'先把四条支腿撑到地上，车才站得稳。',part:'legs',on(){C.phase=1;startSeq(LIFT_A,1);}},
       {t:'大臂抬起来，一节一节伸出去。',part:'boom'},
       {t:'卷扬机放绳，钩子落下来挂住箱子。',part:'winch',inner:true},
       {t:'吊起来，转个身，稳稳放到旁边。',part:'hook'},
@@ -259,9 +275,9 @@ SCENES.crane=Object.assign({
 
     ctx.linearize();
     return {update,chain,camY(){return (1.4*C.pitch+.6*C.ext)*(1-api.ee);},
-      onStop(){C.seq=null;C.reps=0;C.engineOn=false;
-        C.legT=C.pitchT=C.extT=C.hookT=C.slewT=C.liftedT=0;},
-      onStart(){},onDone(){C.engineOn=false;}};
+      onStop(){C.seq=null;C.reps=0;C.phase=0;C.engineOn=false;
+        C.legT=C.pitchT=C.extT=C.hookT=C.slewT=C.liftedT=0;if(C.box){C.box.position.set(...BOX_HOME);C.box.rotation.y=0;}},
+      onStart(){if(C.box){C.box.position.set(...BOX_HOME);C.box.rotation.y=0;}},onDone(){C.engineOn=false;}};
   }
 },RIG.SKY.site);
 })();

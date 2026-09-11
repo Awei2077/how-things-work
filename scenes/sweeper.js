@@ -41,7 +41,8 @@ SCENES.sweeper=Object.assign({
       l.position.set(-14+Math.random()*28,.04,(Math.random()-.5)*3.6);scene.add(l);litter.push(l);
     }
     return {occluders:s.occluders,update(){
-      const front=S.drive-1.2;
+      // 扫过的地方一直是干净的，倒车也不会把垃圾变回来
+      if(S.front==null)S.front=-14;S.front=Math.max(S.front,S.drive-1.2);const front=S.front;
       clean.scale.x=Math.max(.001,front+14);
       clean.position.x=(front-14)/2;
       for(const l of litter)l.visible=l.position.x>front;
@@ -196,7 +197,7 @@ SCENES.sweeper=Object.assign({
     ctx.linearize();
     return {update,chain,camX(){return S.drive*.85*(1-api.ee);},
       onStop(){R.stop();S.engineOn=false;for(const k of KEYS)S[k+'T']=0;},
-      onStart(){},onDone(){S.engineOn=false;}};
+      onStart(){S.front=-14;},onDone(){S.engineOn=false;}};
   }
 },RIG.SKY.street);
 })();

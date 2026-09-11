@@ -196,7 +196,7 @@ SCENES.piler=Object.assign({
     const chain=[
       {t:'按一下启动按钮。',part:'start',on(){}},
       {t:'发动机转起来，卷扬机开始收绳。',part:'engine',inner:true,
-        on(){S.engineOn=true;api.sfx.loop('engine');R.start(DRIVE,2);}},
+        on(){S.engineOn=true;api.sfx.loop('engine');R.start(DRIVE,1);}},
       {t:'先把桩立起来，对准塔架。',part:'pile'},
       {t:'卷扬机把锤子提到最高，然后一松手。',part:'winch',inner:true},
       {t:'砰！砰！桩一下一下扎进地里。',part:'hammer'},

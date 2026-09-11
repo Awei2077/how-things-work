@@ -50,7 +50,8 @@ SCENES.roller=Object.assign({
       g.castShadow=false;scene.add(g);grit.push(g);
     }
     return {occluders:s.occluders,update(){
-      const front=R.drive+1.5;
+      // 压过的路一直是平的，倒车也不会变回石子路
+      if(R.front==null)R.front=-11;R.front=Math.max(R.front,R.drive+1.5);const front=R.front;
       smooth.scale.x=Math.max(.001,front+11);
       smooth.position.x=(front-11)/2-.5;
       for(const g of grit)g.visible=g.position.x>front;
@@ -238,7 +239,7 @@ SCENES.roller=Object.assign({
     ctx.linearize();
     return {update,chain,camX(){return R.drive*.85*(1-api.ee);},
       onStop(){R.seq=null;R.reps=0;R.engineOn=false;R.driveT=R.sprayT=R.vibT=0;},
-      onStart(){},onDone(){R.engineOn=false;}};
+      onStart(){R.front=-11;},onDone(){R.engineOn=false;}};
   }
 },RIG.SKY.site);
 })();

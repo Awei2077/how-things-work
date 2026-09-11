@@ -12,7 +12,7 @@ const RUN=[
   {d:900 ,to:{load:0}},
   {d:1200,to:{tip:0}},
   {d:400 ,to:{gate:0}},
-  {d:1600,to:{drive:0,load:1}},
+  {d:1600,to:{drive:0}},
 ];
 let R=null;
 
@@ -159,7 +159,7 @@ SCENES.dump=Object.assign({
     const chain=[
       {t:'按一下启动按钮。',part:'start',on(){}},
       {t:'发动机转起来，装满石头出发。',part:'engine',inner:true,
-        on(){S.engineOn=true;api.sfx.loop('engine');R.start(RUN,2);}},
+        on(){S.engineOn=true;api.sfx.loop('engine');R.start(RUN,1);}},
       {t:'开到工地，停稳。',part:'wheels'},
       {t:'后挡板的锁一松，板子就荡开了。',part:'gate'},
       {t:'大油缸把车厢顶起来，石头哗啦滑下去！',part:'ram'},
@@ -168,7 +168,7 @@ SCENES.dump=Object.assign({
     ctx.linearize();
     return {update,chain,camX(){return S.drive*.85*(1-api.ee);},
       onStop(){R.stop();S.engineOn=false;S.tipT=S.driveT=S.gateT=0;S.loadT=1;},
-      onStart(){},onDone(){S.engineOn=false;}};
+      onStart(){S.load=S.loadT=1;},onDone(){S.engineOn=false;}};
   }
 },RIG.SKY.site);
 })();
